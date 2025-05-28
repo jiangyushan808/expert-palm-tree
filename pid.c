@@ -56,7 +56,7 @@ void PID_init()
 
 // 初始化电机 1 的位置环 PID
     pidPosition1.actual_val = 0.0;
-    pidPosition1.target_val = 15600;
+    pidPosition1.target_val = 3120*10;
     pidPosition1.err = 0.0;
     pidPosition1.err_last = 0.0;
     pidPosition1.err_sum = 0.0;
