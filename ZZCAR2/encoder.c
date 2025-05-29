@@ -123,56 +123,53 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
     }
 }
 // 封装串级PID控制逻辑为函数
-//void ccPID(int target_position, short now_position1,short Encoder1Count ) {
-//    
+void ccPID(int target_position, short now_position1,short Encoder1Count ) {
+    
 
-//        // 位置环计算
-//        int Motor1pwm = PID_realize(&pidPosition1, now_position1);
+        // 位置环计算
+        int Motor1pwm = PID_realize(&pidPosition1, now_position1);
 //    		Motor2pwm=PID_realize(&pidPosition2, now_position1);
 //    		Motor3pwm=PID_realize(&pidPosition3, now_position1);
 //    		Motor4pwm=PID_realize(&pidPosition4, now_position1);
-//       // int C = Motor1pwm * 100 / 3120;
+       // int C = Motor1pwm * 100 / 3120;
 //			C1=Motor1pwm*100/3120;
 //		C2=Motor2pwm*100/3120;
 //		C3=Motor3pwm*100/3120;
 //		C4=Motor4pwm*100/3120;
 //        
-////      		C1= limitSpeed(Motor1pwm*100/3120, maxSpeed, minSpeed);
-////				C2= limitSpeed(Motor2pwm*100/3120, maxSpeed, minSpeed);
-////				C3= limitSpeed(Motor3pwm*100/3120, maxSpeed, minSpeed);
-////				C4= limitSpeed(Motor4pwm*100/3120, maxSpeed, minSpeed);
-//		if (pidPosition1.target_val-now_position1<50)
-//		{			
+      	
+		if (pidPosition1.target_val-now_position1<50)
+		{			
 
-//				pidMotor1Speed.target_val=0;
-//			 Motor1_SetSpeed(PID_realize(&pidPosition1, Motor1Speed));
+				pidMotor1Speed.target_val=0;
+			 Motor1_SetSpeed(PID_realize(&pidPosition1, Motor1Speed));
 //			pidMotor2Speed.target_val=0;
 //			 Motor2_SetSpeed(PID_realize(&pidPosition2, Motor2Speed));
 //			pidMotor3Speed.target_val=0;
 //			 Motor3_SetSpeed(PID_realize(&pidPosition3, Motor3Speed));
 //			pidMotor4Speed.target_val=0;
 //			 Motor4_SetSpeed(PID_realize(&pidPosition4, Motor4Speed));
-//		}
-//			else
-//		{
-//			pidMotor1Speed.target_val=	C1;
+		}
+			else
+		{
+			pidMotor1Speed.target_val=	Motor1pwm ;
 //			pidMotor2Speed.target_val=	C2;
 //			pidMotor3Speed.target_val=	C3;
 //			pidMotor4Speed.target_val=	C4;
-//			A1=PID_realize(&pidMotor1Speed, Motor1Speed);//内环输入速度
+			A1=PID_realize(&pidMotor1Speed, Motor1Speed);//内环输入速度
 //			A2=PID_realize(&pidMotor2Speed, Motor2Speed);
 //			A3=PID_realize(&pidMotor3Speed, Motor3Speed);
 //			A4=PID_realize(&pidMotor4Speed, Motor4Speed);
-//            // 限制速度变化量
-//          //  A = limitSpeedChange(lastMotor1Speed, A, maxSpeedChange); 
-//			 Motor1_SetSpeed(A1);
+            // 限制速度变化量
+         A1=limitSpeed(A1, 100, -100);
+			 Motor1_SetSpeed(A1);
 //			 Motor2_SetSpeed(A2);
 //			 Motor3_SetSpeed(A3);
 //			 Motor4_SetSpeed(A4);
-//		}
-//		
-//		
-//}
+		}
+		
+		
+}
 //		
 //typedef enum {
 //	  ready,
