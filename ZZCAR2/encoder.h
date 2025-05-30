@@ -10,10 +10,7 @@ extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim5;
  extern uint16_t TimerCount ;
-extern short Encoder1Count ;//encoder shu de0 num
-extern short Encoder2Count ;
-extern short Encoder3Count ;
-extern short Encoder4Count ;
+
 //extern float A;
 //extern float C;
 extern float Motor1Speed ;

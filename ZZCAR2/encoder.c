@@ -22,7 +22,7 @@ extern tPid pidPosition1;
 extern tPid pidPosition2;
 extern tPid pidPosition3;
 extern tPid pidPosition4;
-  short now_position1;
+  short now_position1=0;
 	  short now_position11;
 	  short now_position22;
 		  short now_position33;
@@ -57,7 +57,7 @@ float lastMotor1Speed = 0.0;
 
 
 uint16_t TimerCount =0;
-short Encoder1Count = 0;//encoder shu de0 num
+int32_t Encoder1Count = 0;//encoder shu de0 num
 short Encoder2Count = 0;
 short Encoder3Count = 0;
 short Encoder4Count = 0;
@@ -85,28 +85,30 @@ float limitSpeed(float speed, float maxSpeed, float  minSpeed) {
 }
 void updateusart(void)
 {
-	 Encoder1Count =(short)__HAL_TIM_GET_COUNTER(&htim2);
-	Encoder2Count =(short)__HAL_TIM_GET_COUNTER(&htim3);
-	Encoder3Count =(short)__HAL_TIM_GET_COUNTER(&htim4);
-	Encoder4Count =(short)__HAL_TIM_GET_COUNTER(&htim5);//save num speed
-	
+	 Encoder1Count =__HAL_TIM_GET_COUNTER(&htim2);
+//	Encoder2Count =(short)__HAL_TIM_GET_COUNTER(&htim3);
+//	Encoder3Count =(short)__HAL_TIM_GET_COUNTER(&htim4);
+//	Encoder4Count =(short)__HAL_TIM_GET_COUNTER(&htim5);//save num speed
+//	
 	
 	__HAL_TIM_SET_COUNTER(&htim2,0);
-	__HAL_TIM_SET_COUNTER(&htim3,0);
-	__HAL_TIM_SET_COUNTER(&htim4,0);
-	__HAL_TIM_SET_COUNTER(&htim5,0);//clear num
+//	__HAL_TIM_SET_COUNTER(&htim3,0);
+//	__HAL_TIM_SET_COUNTER(&htim4,0);
+//	__HAL_TIM_SET_COUNTER(&htim5,0);//clear num
 //	Motor1Speed = (float)Encoder1Count*100/3120;//  60/13/4
 //	Motor2Speed = (float)Encoder2Count*100/3120;//speed=quan num/tim   zui hou shi 1s turn ji quan
 //	Motor3Speed = (float)Encoder3Count*100/3120;
 //	Motor4Speed = -(float)Encoder4Count*100/3120;
-		Motor1Speed = (float)Encoder1Count;//  60/13/4
-	Motor2Speed = (float)Encoder2Count;//speed=quan num/tim   zui hou shi 1s turn ji quan
-	Motor3Speed = (float)Encoder3Count;
-	Motor4Speed = -(float)Encoder4Count;
-	now_position11+=Encoder1Count;
-	now_position22+=Encoder2Count;
-	now_position33+=Encoder3Count;
-	now_position44+=Encoder4Count;
+	int16_t delta = (int16_t) Encoder1Count;
+now_position1+=delta;	
+		Motor1Speed = (float)delta;//  60/13/4
+//	Motor2Speed = (float)Encoder2Count;//speed=quan num/tim   zui hou shi 1s turn ji quan
+//	Motor3Speed = (float)Encoder3Count;
+//	Motor4Speed = -(float)Encoder4Count;
+	
+//	now_position22+=Encoder2Count;
+//	now_position33+=Encoder3Count;
+//	now_position44+=Encoder4Count;
 	 // now_position1=(now_position11+now_position22+now_position33+now_position44)/4;
 //	Motor1Speed = limitSpeed(pidMotor1Speed.target_val, maxSpeed,  minSpeed);
   
@@ -123,11 +125,11 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
     }
 }
 // 封装串级PID控制逻辑为函数
-void ccPID(int target_position, short now_position1,short Encoder1Count ) {
+void ccPID(int target_position) {
     
-
+pidPosition1.target_val=target_position;
         // 位置环计算
-        int Motor1pwm = PID_realize(&pidPosition1, now_position1);
+       float position1_output = PID_realize(&pidPosition1, now_position1);
 //    		Motor2pwm=PID_realize(&pidPosition2, now_position1);
 //    		Motor3pwm=PID_realize(&pidPosition3, now_position1);
 //    		Motor4pwm=PID_realize(&pidPosition4, now_position1);
@@ -138,7 +140,7 @@ void ccPID(int target_position, short now_position1,short Encoder1Count ) {
 //		C4=Motor4pwm*100/3120;
 //        
       	
-		if (pidPosition1.target_val-now_position1<50)
+		if (fabs(pidPosition1.target_val-now_position1)<100)
 		{			
 
 				pidMotor1Speed.target_val=0;
@@ -152,7 +154,7 @@ void ccPID(int target_position, short now_position1,short Encoder1Count ) {
 		}
 			else
 		{
-			pidMotor1Speed.target_val=	Motor1pwm ;
+			pidMotor1Speed.target_val=	position1_output;
 //			pidMotor2Speed.target_val=	C2;
 //			pidMotor3Speed.target_val=	C3;
 //			pidMotor4Speed.target_val=	C4;
@@ -391,28 +393,28 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
        // TimerCount++;
         updateusart(); // 先更新速度
-			
-		
+			ccPID(3120);
+			ANO_DT_Send_F2(pidPosition1.target_val, (short)__HAL_TIM_GET_COUNTER(&htim2), Encoder1Count, now_position1);
 			// movePath() ;
-	Motor1pwm=PID_realize(&pidPosition1, now_position11);
-	//		C=Motor1pwm*100/3120;
-		// Motor1_SetSpeed(Motor1pwm);
-	//Motor1pwm=limit (Motor1pwm,pidMotor1Speed.target_val);
-			//Motor1pwm= limitSpeed(Motor1pwm, maxSpeed, minSpeed);
-		
-		if (fabs(pidPosition1.target_val-now_position11)<3)
-		{	
-			pidMotor1Speed.target_val=0;
-			 Motor1_SetSpeed(PID_realize(&pidMotor1Speed, Motor1Speed));
-		}
-		else
-		{
-			pidMotor1Speed.target_val=	Motor1pwm;
-			A=PID_realize(&pidMotor1Speed, Motor1Speed);//内环输入速度
-            // 限制速度变化量
-           // A = limitSpeedChange(lastMotor1Speed, A, maxSpeedChange);
-			 Motor1_SetSpeed(A/3120);
-		}
+//	Motor1pwm=PID_realize(&pidPosition1, now_position11);
+//	//		C=Motor1pwm*100/3120;
+//		// Motor1_SetSpeed(Motor1pwm);
+//	//Motor1pwm=limit (Motor1pwm,pidMotor1Speed.target_val);
+//			//Motor1pwm= limitSpeed(Motor1pwm, maxSpeed, minSpeed);
+//		
+//		if (fabs(pidPosition1.target_val-now_position11)<3)
+//		{	
+//			pidMotor1Speed.target_val=0;
+//			 Motor1_SetSpeed(PID_realize(&pidMotor1Speed, Motor1Speed));
+//		}
+//		else
+//		{
+//			pidMotor1Speed.target_val=	Motor1pwm;
+//			A=PID_realize(&pidMotor1Speed, Motor1Speed);//内环输入速度
+//            // 限制速度变化量
+//           // A = limitSpeedChange(lastMotor1Speed, A, maxSpeedChange);
+//			 Motor1_SetSpeed(A/3120);
+//		}
 	//	 lastMotor1Speed = A; 
 //     // 计算每个电机的位置环 PID 输出
 //        float positionOutput1 = PID_Position1_realize(&pidPosition1, (float)Encoder1Count);  // 电机 1 的位置环PID输出
@@ -436,7 +438,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
       
        sprintf(sendBuffer, "fabs( pidPosition1.target_val-now_position1): %.2f\r\n ",
               fabs( pidPosition1.target_val-now_position1));
-			ANO_DT_Send_F2(pidPosition1.target_val, A/3120, pidMotor1Speed.target_val/3120  ,pidPosition1.actual_val);//a是内环输入速度
+//			ANO_DT_Send_F2(pidPosition1.target_val, A/3120, pidMotor1Speed.target_val/3120  ,pidPosition1.actual_val);//a是内环输入速度
        //pidspeed目标值，内环用pid算出速度,外环用pid算出脉冲/3120，位置误差
 			 UART_SendString(&huart1, sendBuffer);
 		
