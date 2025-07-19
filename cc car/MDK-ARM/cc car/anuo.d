@@ -30,7 +30,11 @@ cc\ car/anuo.o: ANUO.c ../Core/Inc\main.h \
   ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h \
   ../Drivers/STM32F4xx_HAL_Driver/Inc\stm32f4xx_hal_uart.h \
   ../MDK-ARM/AUNO.h ../MDK-ARM/encoder.h ../MDK-ARM\pid.h \
+<<<<<<< HEAD
   ../MDK-ARM\encoder.h ../MDK-ARM/motor.h \
   D:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
+=======
+  ../MDK-ARM/motor.h D:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
+>>>>>>> master
   D:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h \
   D:\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h

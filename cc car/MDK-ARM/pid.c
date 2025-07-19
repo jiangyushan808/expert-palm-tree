@@ -9,7 +9,11 @@ float Bias_yaw = 0,Last_bias_yaw = 0;
 long Integral_bias_yaw = 0;
 
 /* 位置式PID系数 */
+<<<<<<< HEAD
 float Position_KP=0.038,Position_KI=0,Position_KD=0.085;//6.382 
+=======
+float Position_KP=0.03,Position_KI=0,Position_KD=0;//6.382 
+>>>>>>> master
 //内环
 float Incremental_KP = 5.50,Incremental_KI =  3.00050 , Incremental_KD = 0.40; //算是比较完美的参数了	
 
@@ -68,11 +72,28 @@ long Position_PID_Left(long reality, long target,int reset) //new: reset
 }
 
 //右轮的位置式PID --- 写两个函数，是为了编码器数据不干扰
+<<<<<<< HEAD
 long Position_PID_Right(long reality, long target)
+=======
+long Position_PID_Right(long reality, long target,int reset)
+>>>>>>> master
 {
 	static long Bias, Last_Bias;   // 偏差Bias，上次偏差Last_Bias
 	static long PWM_OUT;
 
+<<<<<<< HEAD
+=======
+	// new: 添加重置功能   
+	//重置模式 - 当reset=1时执行
+    if(reset == 1) {
+        Bias = 0;
+        Last_Bias = 0;
+        PWM_OUT = 0;
+        return 0; // 返回值不重要， reset 模式仅用于清零，不参与实际输出
+    }
+	
+	
+>>>>>>> master
 	Bias = target - reality; /* 计算偏差 */
 	Integral_bias_Right += Bias;	 /* 偏差累积 */
 
@@ -129,9 +150,27 @@ int Incremental_PID_Left(int reality,int target, int reset)
 	 return Pwm;                                            /* 输出结果 */
 }
 //右轮 增量式PID计算
+<<<<<<< HEAD
 int Incremental_PID_Right(int reality,int target)
 { 	
 	 static float Pwm;
+=======
+int Incremental_PID_Right(int reality,int target, int reset)
+{ 	
+	 static float Pwm;
+	
+	// new: 添加重置功能  
+	// 重置模式
+    if (reset == 1) {
+        Pwm = 0;
+        Bias_Left = 0;
+        Last_bias_Left = 0;
+        Prev_bias_Left = 0;
+        return 0;
+    }
+	
+	
+>>>>>>> master
 
 	 Bias_Right=target-reality;                                   /* 计算偏差 */
     
@@ -146,6 +185,7 @@ int Incremental_PID_Right(int reality,int target)
 }
 
 
+<<<<<<< HEAD
 
 // 封装 重置归0函数
 void Reset_Position_PID_Left(void)
@@ -162,6 +202,21 @@ void Reset_Incremental_PID_Left(void)
 }
 
 
+=======
+//// 重置归0
+//void Reset_Position_PID_Left(void)
+//{
+//    // 通过重置参数调用位置环函数  
+//    Position_PID_Left(0, 0, 1);
+//    Integral_bias_Left = 0;
+//}
+
+//void Reset_Incremental_PID_Left(void)
+//{
+//    Incremental_PID_Left(0, 0, 1);
+////    
+//}
+>>>>>>> master
 
 ////角度环
 //int Witc901_Yaw_correct(float real_yaw, float target_yaw)

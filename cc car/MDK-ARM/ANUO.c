@@ -9,11 +9,14 @@
 
 #include "math.h"
 
+<<<<<<< HEAD
 int num =0;		//num，圈数的意思，目标圈数
 int rpm = 0;		//RPM转速
 /* 系统统一转换为脉冲数进行处理，脉冲数分辨率高，控制精度高 */
 //long Target_Velocity=0,Reali9ty_Velocity=0;   /* 目标速度，实际速度 */
 
+=======
+>>>>>>> master
 
 
 /* 匿名V7上位机协议	*/
