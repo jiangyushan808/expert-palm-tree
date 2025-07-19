@@ -9,20 +9,10 @@
 #include <stdlib.h>
 #include <AUNO.h> 
 #include <usart.h> 
+
+
 //读取编码器计数值
 int16_t    Motor1Speed;
-<<<<<<< HEAD
-short	Encoder_cnt ;
-char sendBuffer[100];
-int t=1;
- float target_velocity ;//满速100
-//编码器位置累加
-long now_position1=0;
- float position1_output =0;
- float speed_output=0;
- 
- long Target_Position=3120*5,Reality_Position=0;   /* 目标位置，实际位置 */
-=======
 int16_t    Motor2Speed;
 int16_t    Motor3Speed;
 int16_t    Motor4Speed;
@@ -34,7 +24,13 @@ int num = 250;		//num，圈数的意思，目标圈数
 int rpm = 0;		//RPM目标转速
 
 float real_num = 0; //状态机
- 
+float angle_real = -1.2;
+float Rpm_Num = 0;//计算出的转数
+
+uint8_t L_flag = 1;  //（当L_flag == 1时：用PID
+uint8_t R_flag = 1;
+
+
 /* 系统统一转换为脉冲数进行处理，脉冲数分辨率高，控制精度高 */
 long Target_Velocity=0,Reality_Velocity=0;   /* 目标速度，实际速度 */
 long Target_Position=0,Reality_Position=0;   /* 目标位置，实际位置 */
@@ -53,13 +49,11 @@ long now_position1=0;
  float speed_output_R=0;
  float speed_output_R2=0;
  
- 
- float Rpm_Num = 0;//计算出的转数
- 
+
  
  //float target_velocity ;//用于test满速100 
 // long Target_Position=3120*2,Reality_Position=0;   /* test用目标位置，实际位置 */
->>>>>>> master
+
 // 限制速度变化量的函数
 float limitSpeedChange(float currentSpeed, float targetSpeed, float maxChange) {
     float speedChange = targetSpeed - currentSpeed;
@@ -91,14 +85,7 @@ long Pulse_Encoder_Cnt(float num)
 	retuen_Value = (num*3120);
     return retuen_Value;     /* 4倍频 */       
 }
-<<<<<<< HEAD
-//计算输入：目标转速 rpm输出脉冲数
-long Rpm_Encoder_Cnt(float rpm)
-{
-    return (rpm*3120)/(60*1000/100);            /* 4倍频 */       
-}
 
-=======
 
 /**************************************************************************
  * @brief  计算转速对应编码器脉冲数
@@ -123,7 +110,7 @@ float Num_AllEncoder(long encoder_num)
 	
 	return quanshu;
 }
->>>>>>> master
+
 
 void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
     uint16_t len = strlen(str);
@@ -132,6 +119,9 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
         Error_Handler();
     }
 }
+
+/*主控*/
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == &htim1) { 
 		
@@ -142,18 +132,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         //new: 检查是否需要重置
         if(need_reset) {
             // 重置位置环内部状态
-<<<<<<< HEAD
-            Reset_Position_PID_Left(); 
-            
-            // 重置速度环内部状态
-            Reset_Incremental_PID_Left() ;
-            
-            // 重置硬件编码器
-            __HAL_TIM_SET_COUNTER(&htim2, 0);
- 
-			
-         // 清除重置标志
-=======
            Position_PID_Left(0, 0, 1);
            Integral_bias_Left = 0;
 		   Position_PID_Right(0 ,0 , 1);
@@ -164,29 +142,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			 Incremental_PID_Right(0, 0, 1);		
             
             // 清除重置标志
->>>>>>> master
+
             need_reset = 0;
         }
 		   
         // 1. 读取编码器
         Motor1Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim2);
-<<<<<<< HEAD
-			 
-        __HAL_TIM_SET_COUNTER(&htim2, 0);
-        Encoder_cnt = -(short)Motor1Speed;
-        
-        // 2. 更新实际位置
-        now_position1 += Encoder_cnt;
-        
-//new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
-			
-       
-        // 3. 停止条件判断
-     if(labs(now_position1 - Target_Position) < 100) 
-        {
-            Motor1_SetSpeed(0);
-            
-=======
 		Motor2Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim3);
         Motor3Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim4);
 		Motor4Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim5);				
@@ -218,23 +179,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
             Motor2_SetSpeed(0);
 			Motor3_SetSpeed(0);
  		    Motor4_SetSpeed(0);
->>>>>>> master
+
            // 设置重置标志（下次中断时执行）
             need_reset = 1;
-           
-			
+		
         }
         else {
-<<<<<<< HEAD
-			// 4. 位置环计算目标速度
-        float target_velocity = Position_PID_Left(now_position1, Target_Position,0);
-        target_velocity = Xianfu(target_velocity, Rpm_Encoder_Cnt(Rpm_Max));
-			
-            // 5. 速度环计算PWM
-            speed_output = Incremental_PID_Left(Encoder_cnt, target_velocity,0);
-            speed_output = Xianfu(speed_output, PWM_MAX);
-            Motor1_SetSpeed(speed_output);
-=======
+
 			// 计算期望位置、期望速度（状态机中给定，用于限幅）
 			Target_Velocity = Rpm_Encoder_Cnt(rpm);		/* 将转速转化为10ms的脉冲数，目标速度 */
 			Target_Position = Pulse_Encoder_Cnt(num);	/* 将圈数转化为目标脉冲数，目标位置 */
@@ -269,36 +220,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			speed_output_R = Xianfu(speed_output_R, PWM_MAX);
             speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
 			
-			
-			
+
              Motor1_SetSpeed(speed_output_L);
 			 Motor2_SetSpeed(speed_output_R);
 			 Motor3_SetSpeed(speed_output_L2);
 			 Motor4_SetSpeed(speed_output_R2);
->>>>>>> master
+
         }
 				
     }
 		 
 Data_send(
   now_position1,
-<<<<<<< HEAD
-            Target_Position ,
-            Encoder_cnt, 
-		target_velocity 
-=======
           Motor2Speed,
             labs(now_position1 - Target_Position), 
 		Target_Position
->>>>>>> master
-   );
-      
-	
+
+   );     	
  
 	 }
-    
-<<<<<<< HEAD
 
-	
-=======
->>>>>>> master

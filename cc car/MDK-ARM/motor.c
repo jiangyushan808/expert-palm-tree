@@ -35,13 +35,10 @@ void Motor2_SetSpeed(int Speed) {
 		HAL_GPIO_WritePin(BIN10_GPIO_Port, BIN10_Pin, GPIO_PIN_RESET); 	//PD7置低电平，设置方向为正转
 		__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,	Speed);			//PWM设置为速度值
 	} else {								//否则，即设置反转的速度值
-<<<<<<< HEAD
-		HAL_GPIO_WritePin(BIN10_GPIO_Port, BIN10_Pin, GPIO_PIN_RESET);	//PD6置高电平
-		HAL_GPIO_WritePin(BIN20_GPIO_Port,BIN20_Pin, GPIO_PIN_SET); 	//PD7置低电平，设置方向为正转
-=======
+
 		HAL_GPIO_WritePin(BIN20_GPIO_Port, BIN10_Pin, GPIO_PIN_RESET);	//PD6置高电平
 		HAL_GPIO_WritePin(BIN10_GPIO_Port,BIN20_Pin, GPIO_PIN_SET); 	//PD7置低电平，设置方向为正转
->>>>>>> master
+
 		__HAL_TIM_SET_COMPARE(&htim1,TIM_CHANNEL_4,	-Speed);				//PWM设置为负的速度值，因为此时速度值为负数，而PWM只能给正数
 	}
 }
