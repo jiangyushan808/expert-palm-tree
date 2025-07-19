@@ -130,7 +130,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         }
         else {
 			// 4. 位置环计算目标速度
-        float target_velocity = Position_PID_Left(now_position1, Target_Position,0);
+       target_velocity = Position_PID_Left(now_position1, Target_Position,0);
         target_velocity = Xianfu(target_velocity, Rpm_Encoder_Cnt(Rpm_Max));
 			
             // 5. 速度环计算PWM
