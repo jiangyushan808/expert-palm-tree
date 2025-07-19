@@ -7,9 +7,9 @@ float Bias_Left = 0,Last_bias_Left = 0,Prev_bias_Left = 0;
 float Bias_Right = 0,Last_bias_Right = 0,Prev_bias_Right = 0;
 float Bias_yaw = 0,Last_bias_yaw = 0;
 long Integral_bias_yaw = 0;
-
+extern long now_position;
 /* 位置式PID系数 */
-float Position_KP=0.02,Position_KI=0.0001,Position_KD=0.473;//6.382 
+float Position_KP=0.01,Position_KI=0.0001,Position_KD=0.473;//6.382 
 //内环
 float Incremental_KP = 5.50,Incremental_KI =  3.00050 , Incremental_KD = 0.40; //算是比较完美的参数了	
 

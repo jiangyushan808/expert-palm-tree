@@ -19,11 +19,11 @@ char sendBuffer[100];
 int t=1;
  float target_velocity ;//满速100
 //编码器位置累加
-long now_position;
+long now_position1,now_position2,now_position3,now_position4;
  float position1_output =0;
  float speed_output=0;
  
- long Target_Position=3120*2,Reality_Position=0;   /* 目标位置，实际位置 */
+ long Target_Position=3120*5,Reality_Position=0;   /* 目标位置，实际位置 */
 // 限制速度变化量的函数
 float limitSpeedChange(float currentSpeed, float targetSpeed, float maxChange) {
     float speedChange = targetSpeed - currentSpeed;
@@ -106,45 +106,46 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 //				
         Encoder1_cnt =-(short)Motor1Speed;
         Encoder2_cnt = (short)Motor2Speed;
-        Encoder3_cnt = (short)Motor3Speed;
+        Encoder3_cnt = -(short)Motor3Speed;
         Encoder4_cnt = (short)Motor4Speed;
 				
 				Encoder_cnt=(Encoder1_cnt+Encoder2_cnt+Encoder3_cnt+Encoder4_cnt)/4;
         // 2. 更新实际位置
-        now_position += Encoder_cnt;
+        now_position1 += Encoder_cnt;
 //        now_position2 += Encoder2_cnt;
 //        now_position3 += Encoder3_cnt;
 //        now_position4 += Encoder4_cnt;				
         // 3. 停止条件判断
-     if(labs(now_position - Target_Position) <50) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
+     if(labs(now_position1 - Target_Position) <50) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
 	
         {
             Motor1_SetSpeed(0);
-             Motor2_SetSpeed(0);
-					  Motor3_SetSpeed(0);
-					  Motor4_SetSpeed(0);
+            Motor2_SetSpeed(0);
+            Motor3_SetSpeed(0);
+            Motor4_SetSpeed(0);					
            // 设置重置标志（下次中断时执行）
             need_reset = 1;
-           
-			
+         
         }
         else {
 			// 4. 位置环计算目标速度
-        float target_velocity = Position_PID_Left(now_position, Target_Position,0);
+        float target_velocity = Position_PID_Left(now_position1, Target_Position,0);
         target_velocity = Xianfu(target_velocity, Rpm_Encoder_Cnt(Rpm_Max));
 			
             // 5. 速度环计算PWM
             speed_output = Incremental_PID_Left(Encoder_cnt, target_velocity,0);
             speed_output = Xianfu(speed_output, PWM_MAX);
            Motor1_SetSpeed(speed_output);
-					 Motor2_SetSpeed(speed_output);
-					 Motor3_SetSpeed(speed_output);
+           Motor2_SetSpeed(speed_output);
+           Motor3_SetSpeed(speed_output);
 					 Motor4_SetSpeed(speed_output);
+					 
         }
 				
 				
-    }
-		 
+				
+			}
+		
 //Data_send(
 //  now_position1,
 //         now_position2,
@@ -156,8 +157,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
  Data_send(
   Target_Position,
         Encoder_cnt,
-            now_position, 
-	now_position
+        now_position1, 
+	now_position1
    );
      
 	 }
