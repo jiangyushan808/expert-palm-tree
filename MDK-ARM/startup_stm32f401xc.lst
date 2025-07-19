@@ -738,12 +738,12 @@ ARM Macro Assembler    Page 12
               00000400 
               00000200 
               00000000 
-Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --depend="
-cc car\startup_stm32f401xc.d" -o"cc car\startup_stm32f401xc.o" -I.\RTE\_cc_car 
--ID:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\CMSIS\Include -ID:\Keil_v5\ARM\PACK\Keil\
-STM32F4xx_DFP\2.8.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include --predefine="__UV
-ISION_VERSION SETA 524" --predefine="_RTE_ SETA 1" --predefine="STM32F401xC SET
-A 1" --list=startup_stm32f401xc.lst startup_stm32f401xc.s
+Command Line: --debug --xref --diag_suppress=9931,A1950W --cpu=Cortex-M4.fp.sp 
+--depend="cc car\startup_stm32f401xc.d" -o"cc car\startup_stm32f401xc.o" -I.\RT
+E\_cc_car -IC:\Users\jiangyushan\AppData\Local\Arm\Packs\ARM\CMSIS\6.2.0\CMSIS\
+Core\Include --predefine="__UVISION_VERSION SETA 542" --predefine="STM32F401xC 
+SETA 1" --predefine="_RTE_ SETA 1" --list=startup_stm32f401xc.lst startup_stm32
+f401xc.s
 
 
 

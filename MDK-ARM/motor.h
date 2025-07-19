@@ -5,7 +5,7 @@
 #include "stm32f4xx_hal.h" //HAL?????
 #include <main.h>
 //PWM限幅 宏定义
-#define PWM_MAX  999  // TIM1的Period=999
+#define PWM_MAX  600  // TIM1的Period=999
 #define PWM_MIN -999
 #define Dead_Voltage  100	//电机死区电压 PMW = 150
 #define Rpm_Max       146     /* 最大转速  rpm */
