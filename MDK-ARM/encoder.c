@@ -114,7 +114,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         now_position1 += Encoder_cnt;
 //        now_position2 += Encoder2_cnt;
 //        now_position3 += Encoder3_cnt;
-//        now_position4 += Encoder4_cnt;				
+//        now_position4 += Encoder4_cnt;
+///测试github  第三次提交
         // 3. 停止条件判断
      if(labs(now_position1 - Target_Position) <50) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
 	
