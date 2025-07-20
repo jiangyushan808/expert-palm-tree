@@ -27,6 +27,7 @@
 
 #include <pid.h>
 #include <encoder.h>
+#include <jy61.h>
 #include <AUNO.h> 
 #include <stdio.h>
 #include <string.h>
@@ -84,7 +85,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  JY61_Init(&huart1);     // 启动接收 JY61 数据
   /* USER CODE END Init */
 
   /* Configure the system clock */

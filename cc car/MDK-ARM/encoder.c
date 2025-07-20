@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <AUNO.h> 
 #include <usart.h> 
+#include <JY61.h>
 
 
 //读取编码器计数值
@@ -17,6 +18,8 @@ int16_t    Motor2Speed;
 int16_t    Motor3Speed;
 int16_t    Motor4Speed;
 short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt;
+
+
 char sendBuffer[100];
 int t=1;
 
@@ -120,14 +123,44 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
     }
 }
 
-/*主控*/
+/******主控*****/
+void Use_Pid_Tocontrol()
+{
+	static int a = 0;
+	if(a<=300 && real_num == 0) //前 300ms 电机停止
+	{
+		 a++;
+		 L_flag=0;		R_flag=0;  //初始化时设为0，停止左右电机PID控制
+         Motor1_SetSpeed(0);   
+		 Motor2_SetSpeed(0);
+		 Motor3_SetSpeed(0);
+		 Motor4_SetSpeed(0);
+		return;
+	}
+    else if(real_num == 0 && a>300)
+	{
+		rpm=86;                  //设置起始速度
+		L_flag=1;		R_flag=1;//启用 PID
+		real_num = 1;  // 第一段直线
+	}
+//   if(JY61_GetPitch <=-10)
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+}	
+/*串级PID*/
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) 
+	{
     if (htim == &htim1) { 
 		
 
-		  static uint8_t need_reset = 0; // new：重置标志
-        
+		static unsigned int timecnt;
+      if (++timecnt >= 100)	
+	  {
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);	//500ms翻转PC13电平,测试500ms，为了测试10ms外部中断，用示波器观测也是10ms一个下降沿
+		timecnt = 0;
+	  }
+	
+		 static uint8_t need_reset = 0; // new：重置标志
+          
         
         //new: 检查是否需要重置
         if(need_reset) {
@@ -145,7 +178,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
             need_reset = 0;
         }
-		   
+		 
+		
         // 1. 读取编码器
         Motor1Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim2);
 		Motor2Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim3);
@@ -162,10 +196,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         Encoder3_cnt = -(short)Motor3Speed;
         Encoder4_cnt = (short)Motor4Speed;
 				
-		Encoder_cnt=(Encoder1_cnt+Encoder2_cnt+Encoder3_cnt+Encoder4_cnt)/4;
+//		Encoder_cnt=(Encoder1_cnt+Encoder2_cnt+Encoder3_cnt+Encoder4_cnt)/4;
         // 2. 更新实际位置
         now_position1 += Encoder_cnt;
-       
+//      now_position2 += Encoder2_cnt;
+//      now_position3 += Encoder3_cnt;
+//      now_position4 += Encoder4_cnt;
 	   //计算当前转数
 	   Rpm_Num = Num_AllEncoder(now_position1);
        
@@ -240,3 +276,6 @@ Data_send(
  
 	 }
 
+
+
+ 

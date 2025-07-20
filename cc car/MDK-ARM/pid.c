@@ -17,10 +17,10 @@ float Incremental_KP = 5.50,Incremental_KI =  3.00050 , Incremental_KD = 0.40; /
 float Yaw_KP = 20.0, Yaw_KI = 0.1, Yaw_KD = 40.0;
 int Yaw_PWM;
 float Yaw_fAngle = 0.0f;
+/*********************角度环*********************/
 
 
-// 在文件顶部声明可重置的静态变量
-static long PID_Bias = 0, PID_Last_Bias = 0;
+
 
 /**************************************************************************
  * @brief  位置式PID控制器
@@ -175,23 +175,8 @@ int Incremental_PID_Right(int reality,int target, int reset)
 
 
 
-//// 重置归0
-//void Reset_Position_PID_Left(void)
-//{
-//    // 通过重置参数调用位置环函数  
-//    Position_PID_Left(0, 0, 1);
-//    Integral_bias_Left = 0;
-//}
-
-//void Reset_Incremental_PID_Left(void)
-//{
-//    Incremental_PID_Left(0, 0, 1);
-////    
-//}
-
-
 //角度环
-int Witc901_Yaw_correct(float real_yaw, float target_yaw)
+int JY61P_Yaw_correct(float real_yaw, float target_yaw)
 {
 	static long PWM_OUT;
 	Bias_yaw = target_yaw - real_yaw; /* 计算偏差 */

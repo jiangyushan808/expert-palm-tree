@@ -2,7 +2,11 @@
 #include "main.h"
 #include "tim.h"
 
-
+/**
+  * 函    数：直流电机1设置速度
+  * 参    数：Speed 要设置的速度，范围：-100~100
+  * 返 回 值：无
+  */
 void Motor1_SetSpeed(int Speed) {
 //	if (Speed >= 0) {						//如果设置正转的速度值
 //		HAL_GPIO_WritePin(GPIOB, Apower1_Pin, GPIO_PIN_SET);	//PD6置高电平
@@ -44,7 +48,7 @@ void Motor2_SetSpeed(int Speed) {
 }
 
 /**
-  * 函    数：直流电机2设置速度
+  * 函    数：直流电机3设置速度
   * 参    数：Speed 要设置的速度，范围：-100~100
   * 返 回 值：无
   */
@@ -61,7 +65,7 @@ void Motor3_SetSpeed(int  Speed) {
 }
 
 /**
-  * 函    数：直流电机2设置速度
+  * 函    数：直流电机4设置速度
   * 参    数：Speed 要设置的速度，范围：-100~100
   * 返 回 值：无
   */

@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F401xC</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../MDK-ARM</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../MDK-ARM;..\Drivers</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -719,6 +719,26 @@
               <FileName>AUNO.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\AUNO.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>jy61p</GroupName>
+          <Files>
+            <File>
+              <FileName>JY61.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\JY61.h</FilePath>
+            </File>
+            <File>
+              <FileName>REG.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\REG.h</FilePath>
+            </File>
+            <File>
+              <FileName>JY61.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\JY61.c</FilePath>
             </File>
           </Files>
         </Group>

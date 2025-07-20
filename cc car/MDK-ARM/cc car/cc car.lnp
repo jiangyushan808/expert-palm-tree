@@ -27,6 +27,7 @@
 "cc car\motor.o"
 "cc car\encoder.o"
 "cc car\anuo.o"
+"cc car\jy61.o"
 --strict --scatter "cc car\cc car.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
