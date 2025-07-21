@@ -17,14 +17,13 @@ int16_t    Motor1Speed;
 int16_t    Motor2Speed;
 int16_t    Motor3Speed;
 int16_t    Motor4Speed;
-short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt;
-
-
-char sendBuffer[100];
+//编码器每采样周期的脉冲数,单位 脉冲每采样周期
+short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt,EncoderR_cnt; /*pwm给1000 测得最大值90*/
 int t=1;
+float i;
 
 int num = 250;		//num，圈数的意思，目标圈数
-int rpm = 0;		//RPM目标转速
+int rpm = 30;		//RPM目标转速  从最大脉冲每采样周期转化过来最大转速173
 
 float real_num = 0; //状态机
 float angle_real = -1.2;
@@ -41,16 +40,16 @@ long Target_Position=0,Reality_Position=0;   /* 目标位置，实际位置 */
 //编码器位置累加
 long now_position1=0;
  float position1_output =0;
-  //PID计算出来的目标速度
- float target_velocity_L=500;
- float target_velocity_L2=500;
- float target_velocity_R;
- float target_velocity_R2;
+  //PID计算出来的目标速度 单位脉冲每采样周期 最大值90
+ float target_velocity_L=400;
+ float target_velocity_L2=600;
+ float target_velocity_R=400;
+ float target_velocity_R2=600;
  //PID计算出来的PWM
- float speed_output_L=0;
- float speed_output_L2=0;
- float speed_output_R=0;
- float speed_output_R2=0;
+ float speed_output_L;
+ float speed_output_L2;
+ float speed_output_R;
+ float speed_output_R2;
  
 
  
@@ -94,7 +93,7 @@ long Pulse_Encoder_Cnt(float num)
  * @brief  计算转速对应编码器脉冲数
  * @param  rpm：转速；转/min
  * @retval 电机脉冲数
- * @attention 
+ * @attention  3120是总脉冲数/转
  * @describe 	rpm/(60*1000)*SAMPLE_RATE( 采样周期 多少ms读取一次编码器) =  单位  转每采样周期
  * @matters
 **************************************************************************/
@@ -105,7 +104,31 @@ long Rpm_Encoder_Cnt(float rpm)
     Ret_Value = (rpm*3120)/(60*1000/10);            /* 4倍频 */  
 	return Ret_Value;
 }
-//*计算总编码器数对应圈数/转数
+/**************************************************************************
+ * @brief    将编码器每采样周期的脉冲数转换为电机转速（RPM）
+ * @param    pulse：编码器在一个采样周期内的脉冲数（单位：脉冲/采样周期）
+ * @retval   转速（单位：RPM，转/分钟）
+ * @attention 
+ *           适用于定时周期为10ms的速度采样场景
+ *           其中3120为编码器每圈总脉冲数（含减速比和倍频计算）
+ * @describe 
+ *           公式推导：
+ *               每10ms采样一次 -> 每秒100次采样
+ *               每秒脉冲数 = pulse × 100
+ *               每分钟脉冲数 = pulse × 100 × 60
+ *               RPM = 每分钟脉冲数 / 编码器每圈脉冲数
+ *               即 RPM = pulse × 100 × 60 / 3120
+ *           简化后变为：pulse × 1000 × 60 / 3120 / 10
+ * @matters  
+ *           请确保 pulse 是在10ms内采集的编码器增量脉冲数
+**************************************************************************/
+
+float EncoderCnt_Rpm(int pulse)
+{
+    return (float)pulse * (60.0f * 1000 / 10) / 3120;
+}
+
+//·*计算总编码器数对应圈数/转数
 float Num_AllEncoder(long encoder_num)
 {
 	float quanshu;
@@ -163,23 +186,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
           
         
         //new: 检查是否需要重置
-        if(need_reset) {
-            // 重置位置环内部状态
-           Position_PID_Left(0, 0, 1);
-           Integral_bias_Left = 0;
-		   Position_PID_Right(0 ,0 , 1);
-		   Integral_bias_Right = 0;
-			
-            // 重置速度环内部状态
-             Incremental_PID_Left(0, 0, 1);
-			 Incremental_PID_Right(0, 0, 1);		
-            
-            // 清除重置标志
+//        if(need_reset) {
+//            // 重置位置环内部状态
+//           Position_PID_Left(0, 0, 1);
+//           Integral_bias_Left = 0;
+//		   Position_PID_Right(0 ,0 , 1);
+//		   Integral_bias_Right = 0;
+//			
+//            // 重置速度环内部状态
+//             Incremental_PID_Left(0, 0, 1);
+//			 Incremental_PID_Right(0, 0, 1);		
+//            
+//            // 清除重置标志
 
-            need_reset = 0;
-        }
-		 
-		
+////            need_reset = 0;
+////        }
+////		 
+//		
         // 1. 读取编码器
         Motor1Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim2);
 		Motor2Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim3);
@@ -196,14 +219,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Encoder3_cnt = -(short)Motor3Speed;
         Encoder4_cnt = (short)Motor4Speed;
 				
-		EncoderL_cnt=(Encoder1_cnt+Encoder2_cnt)/2;
+		    EncoderR_cnt=(Encoder1_cnt+Encoder3_cnt)/2;
+			  EncoderL_cnt=(Encoder2_cnt+Encoder4_cnt)/2;	
         // 2. 更新实际位置
      //   now_position1 += Encoder_cnt;
 //      now_position2 += Encoder2_cnt;
 //      now_position3 += Encoder3_cnt;
 //      now_position4 += Encoder4_cnt;
 	   //计算当前转数
-	   Rpm_Num = Num_AllEncoder(now_position1);
+//	   Rpm_Num = Num_AllEncoder(now_position1);
        
 	   
 	   
@@ -226,6 +250,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //			Target_Velocity = Rpm_Encoder_Cnt(rpm);		/* 将转速转化为10ms的脉冲数，目标速度 */
 //			Target_Position = Pulse_Encoder_Cnt(num);	/* 将圈数转化为目标脉冲数，目标位置 */
 //			
+			//new;测速度环用的
+			  target_velocity_L=Rpm_Encoder_Cnt(rpm);
+        target_velocity_L2=Rpm_Encoder_Cnt(rpm);
+        target_velocity_R=Rpm_Encoder_Cnt(rpm);
+        target_velocity_R2=Rpm_Encoder_Cnt(rpm);
+			
 //			// 4. 位置环计算目标速度
 //           target_velocity_L = Position_PID_Left(now_position1, Target_Position,0);
 //           target_velocity_L2 = Position_PID_Left(now_position1, Target_Position,0);
@@ -245,23 +275,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 
 //			
-            // 5. 速度环计算PWM
-            speed_output_L = Incremental_PID_Left(Encoder2_cnt, target_velocity_L,0);
-			speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L2,0);
-//			speed_output_R = Incremental_PID_Right(Encoder_cnt, target_velocity_R,0);
-//			speed_output_R2 = Incremental_PID_Right(Encoder_cnt, target_velocity_R2,0);
-			
-            speed_output_L = Xianfu(speed_output_L, PWM_MAX);
-            speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
-			speed_output_R = Xianfu(speed_output_R, PWM_MAX);
-            speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
-			
+//            // 5. 速度环计算PWM
+//            speed_output_L = Incremental_PID_Left(EncoderL_cnt, target_velocity_L,0);
+////			speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L2,0);
+//			speed_output_R = Incremental_PID_Right(EncoderR_cnt, target_velocity_R,0);
+////			speed_output_R2 = Incremental_PID_Right(Encoder_cnt, target_velocity_R2,0);
+//			
+//           speed_output_L = Xianfu(speed_output_L, PWM_MAX);
+//////						 speed_output_L = Xianfu(speed_output_L, target_velocity_L);
+//////            speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
+//			speed_output_R = Xianfu(speed_output_R, PWM_MAX);
+////            speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
+//			
 
-           //  Motor1_SetSpeed(speed_output_L);
-			 Motor2_SetSpeed(speed_output_R);
-			// Motor3_SetSpeed(speed_output_L2);
-			 Motor4_SetSpeed(speed_output_R2);
-
+             Motor1_SetSpeed(speed_output_R);
+			 Motor2_SetSpeed(speed_output_L);
+			Motor3_SetSpeed(speed_output_R);
+			 Motor4_SetSpeed(speed_output_L);
+//       i = EncoderCnt_Rpm(Encoder2_cnt); //测最大速用的
         }
 				
     
@@ -269,8 +300,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 Data_send
 	(target_velocity_L , 
 	speed_output_L, 
-	target_velocity_L2, 
-	speed_output_L2
+	Encoder2_cnt, 
+	i
 	);     	
  
 	 
