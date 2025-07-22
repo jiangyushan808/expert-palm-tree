@@ -61,10 +61,6 @@ void Error_Handler(void);
 #define Apower4_GPIO_Port GPIOA
 #define Bpower4_Pin GPIO_PIN_1
 #define Bpower4_GPIO_Port GPIOA
-#define PWMA_Pin GPIO_PIN_2
-#define PWMA_GPIO_Port GPIOA
-#define PWMB_Pin GPIO_PIN_3
-#define PWMB_GPIO_Port GPIOA
 #define AIN1_Pin GPIO_PIN_4
 #define AIN1_GPIO_Port GPIOA
 #define AIN2_Pin GPIO_PIN_5

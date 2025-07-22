@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -85,7 +86,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  JY61_Init(&huart1);     // Æô¶¯½ÓÊÕ JY61 Êý¾Ý
+  JY61_Init(&huart1);     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ JY61 ï¿½ï¿½ï¿½ï¿½
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -104,6 +105,7 @@ int main(void)
   MX_TIM5_Init();
   MX_TIM9_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 HAL_TIM_Encoder_Start (&htim2,TIM_CHANNEL_ALL);
 HAL_TIM_Encoder_Start (&htim3,TIM_CHANNEL_ALL);
@@ -208,8 +210,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

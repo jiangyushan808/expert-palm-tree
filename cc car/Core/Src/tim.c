@@ -47,9 +47,9 @@ void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 840-1;
+  htim1.Init.Prescaler = 8400-1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 1000-1;
+  htim1.Init.Period = 100-1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -285,9 +285,9 @@ void MX_TIM9_Init(void)
 
   /* USER CODE END TIM9_Init 1 */
   htim9.Instance = TIM9;
-  htim9.Init.Prescaler = 840-1;
+  htim9.Init.Prescaler = 8400-1;
   htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim9.Init.Period = 1000-1;
+  htim9.Init.Period = 100-1;
   htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim9) != HAL_OK)
@@ -489,7 +489,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
     PA2     ------> TIM9_CH1
     PA3     ------> TIM9_CH2
     */
-    GPIO_InitStruct.Pin = PWMA_Pin|PWMB_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

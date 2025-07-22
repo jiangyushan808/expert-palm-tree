@@ -18,6 +18,11 @@ extern  long Reality_Velocity;   /* 目标速度，实际速度 */
 extern long Target_Position;
 extern long Reality_Position;   /* 目标位置，实际位置 */
 extern long now_position1;
+extern long now_position3;
+extern long now_position2;
+extern long now_position4;
+extern long now_position_L;
+extern long now_position_R;
 //读取编码器计数值
 extern int16_t    Motor4Speed;
 extern  short	Encoder_cnt ;
