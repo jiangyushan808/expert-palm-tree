@@ -3,15 +3,17 @@
 #include <encoder.h>
 long Integral_bias_Left = 0 ;
 long Integral_bias_Right = 0 ; /* 偏差累积 */
+
 float Bias_Left = 0,Last_bias_Left = 0,Prev_bias_Left = 0;
 float Bias_Right = 0,Last_bias_Right = 0,Prev_bias_Right = 0;
 float Bias_yaw = 0,Last_bias_yaw = 0;
 long Integral_bias_yaw = 0;
 
 /* 位置环PID系数 */
-float Position_KP=0.03,Position_KI=0,Position_KD=0;//6.382 
+float Position_KP_L=0.03,Position_KI_L=0,Position_KD_L=0;//6.382 
+float Position_KP_R=22,Position_KI_R=0,Position_KD_R=0;//6.382 
 /*内环 速度环*/
-float Incremental_KP_L =4.2,Incremental_KI_L =  0.005 , Incremental_KD_L = 0;  
+float Incremental_KP_L =4.2,Incremental_KI_L =  0.0005 , Incremental_KD_L = 0.5;  
 float Incremental_KP_R = 1,Incremental_KI_R =  0 , Incremental_KD_R = 0; 
 
 /*********************角度环1*********************/
@@ -59,9 +61,9 @@ long Position_PID_Left(long reality, long target,int reset) //new: reset
 	if (Integral_bias_Left < -5000)
 		Integral_bias_Left = -5000;
 
-	PWM_OUT = (Position_KP * Bias)					/* 比例环节 */
-			  + (Position_KI * Integral_bias_Left)		/* 积分环节 */
-			  + (Position_KD * (Bias - Last_Bias)); /* 微分环节 */
+	PWM_OUT = (Position_KP_L * Bias)					/* 比例环节 */
+			  + (Position_KI_L * Integral_bias_Left)		/* 积分环节 */
+			  + (Position_KD_L * (Bias - Last_Bias)); /* 微分环节 */
 
 	Last_Bias = Bias; /* 保存上次偏差 */
 
@@ -96,9 +98,9 @@ long Position_PID_Right(long reality, long target,int reset)
 	if (Integral_bias_Right < -5000)
 		Integral_bias_Right = -5000;
 
-	PWM_OUT = (Position_KP * Bias)					/* 比例环节 */
-			  + (Position_KI * Integral_bias_Right)		/* 积分环节 */
-			  + (Position_KD * (Bias - Last_Bias)); /* 微分环节 */
+	PWM_OUT = (Position_KP_R * Bias)					/* 比例环节 */
+			  + (Position_KI_R * Integral_bias_Right)		/* 积分环节 */
+			  + (Position_KD_R * (Bias - Last_Bias)); /* 微分环节 */
 
 	Last_Bias = Bias; /* 保存上次偏差 */
 	return PWM_OUT; /* 输出结果 */

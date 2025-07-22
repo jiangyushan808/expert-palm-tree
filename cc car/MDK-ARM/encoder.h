@@ -17,6 +17,7 @@ extern  long Target_Velocity;
 extern  long Reality_Velocity;   /* 目标速度，实际速度 */
 extern long Target_Position;
 extern long Reality_Position;   /* 目标位置，实际位置 */
+
 extern long now_position1;
 extern long now_position3;
 extern long now_position2;

@@ -18,12 +18,12 @@ int16_t    Motor2Speed;
 int16_t    Motor3Speed;
 int16_t    Motor4Speed;
 //编码器每采样周期的脉冲数,单位 脉冲每采样周期
-short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt,EncoderR_cnt; /*pwm给1000 测得最大值90*/
+short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt,EncoderR_cnt; /*pwm给1000 测得最大值89*/
 int t=1;
 float i;
 
-int num = 5;		//num，圈数的意思，目标圈数
-int rpm = 90;		//RPM目标转速  从最大脉冲每采样周期转化过来最大转速173
+int num = 7;		//num，圈数的意思，目标圈数
+int rpm = 173/2;		//RPM目标转速  从最大脉冲每采样周期转化过来最大转速173
 
 float real_num = 0; //状态机
 float angle_real = -1.2;
@@ -34,11 +34,11 @@ uint8_t R_flag = 1;
 
 
 /* 系统统一转换为脉冲数进行处理，脉冲数分辨率高，控制精度高 */
-long Target_Velocity=0,Reality_Velocity=0;   /* 目标速度，实际速度 */
+long Target_Velocity,Reality_Velocity;   /* 目标速度，实际速度 */
 long Target_Position=3120*5,Reality_Position=0;   /* 目标位置，实际位置 */
 
 //编码器位置累加
-long now_position3,now_position2,now_position1,now_position4,now_position_L,now_position_R;
+long now_position3,now_position2,now_position1,now_position4,now_position_L,now_position_R,now_position;
  float position1_output =0;
   //PID计算出来的目标速度 单位脉冲每采样周期 最大值90
  float target_velocity_L;
@@ -46,9 +46,9 @@ long now_position3,now_position2,now_position1,now_position4,now_position_L,now_
  float target_velocity_R;
  float target_velocity_R2;
  //PID计算出来的PWM
- float speed_output_L;
+ float speed_output_L1; 
  float speed_output_L2;
- float speed_output_R;
+ float speed_output_R1;
  float speed_output_R2;
  
 
@@ -144,32 +144,35 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
         
         Error_Handler();
     }
+		
+		
+
 }
 
-///******主控*****/
-//void Use_Pid_Tocontrol()
-//{
-//	static int a = 0;
-//	if(a<=300 && real_num == 0) //前 300ms 电机停止
-//	{
-//		 a++;
-//		 L_flag=0;		R_flag=0;  //初始化时设为0，停止左右电机PID控制
-//         Motor1_SetSpeed(0);   
-//		 Motor2_SetSpeed(0);
-//		 Motor3_SetSpeed(0);
-//		 Motor4_SetSpeed(0);
-//		return;
-//	}
-//    else if(real_num == 0 && a>300)
-//	{
-//		rpm=86;                  //设置起始速度
-//		L_flag=1;		R_flag=1;//启用 PID
-//		real_num = 1;  // 第一段直线
-//	}
-////   if(JY61_GetPitch <=-10)
+/////******主控*****/
+////void Use_Pid_Tocontrol()
+////{
+////	static int a = 0;
+////	if(a<=300 && real_num == 0) //前 300ms 电机停止
+////	{
+////		 a++;
+////		 L_flag=0;		R_flag=0;  //初始化时设为0，停止左右电机PID控制
+////         Motor1_SetSpeed(0);   
+////		 Motor2_SetSpeed(0);
+////		 Motor3_SetSpeed(0);
+////		 Motor4_SetSpeed(0);
+////		return;
+////	}
+////    else if(real_num == 0 && a>300)
+////	{
+////		rpm=86;                  //设置起始速度
+////		L_flag=1;		R_flag=1;//启用 PID
+////		real_num = 1;  // 第一段直线
+////	}
+//////   if(JY61_GetPitch <=-10)
 
-//}	
-/*串级PID*/
+////}	
+///*串级PID*/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) 
 	{
     if (htim == &htim1) { 
@@ -182,27 +185,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		timecnt = 0;
 	  }
 	
+	
 		 static uint8_t need_reset = 0; // new：重置标志
-          
-        
-//        //new: 检查是否需要重置
-        if(need_reset) {
-            // 重置位置环内部状态
-           Position_PID_Left(0, 0, 1);
-           Integral_bias_Left = 0;
-		   Position_PID_Right(0 ,0 , 1);
-		   Integral_bias_Right = 0;
-			
-            // 重置速度环内部状态
-             Incremental_PID_Left(0, 0, 1);
-			 Incremental_PID_Right(0, 0, 1);		
-            
-            // 清除重置标志
 
-            need_reset = 0;
-        }
-		 
-		
+          
+//        
+//        //new: 检查是否需要重置
+//        if(need_reset) {
+//            // 重置位置环内部状态
+//           Position_PID_Left(0, 0, 1);
+//           Integral_bias_Left = 0;
+//		   Position_PID_Right(0 ,0 , 1);
+//		   Integral_bias_Right = 0;
+//			
+//            // 重置速度环内部状态
+//             Incremental_PID_Left(0, 0, 1);
+//			 Incremental_PID_Right(0, 0, 1);		
+//            
+//            // 清除重置标志
+
+//            need_reset = 0;
+//        }
+//		 
+//		
         // 1. 读取编码器
         Motor1Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim2);
 		Motor2Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim3);
@@ -219,99 +224,120 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Encoder3_cnt = (short)Motor3Speed;
         Encoder4_cnt = (short)Motor4Speed;//只有电机1是负的
 				
-				EncoderL_cnt=(Encoder2_cnt+Encoder4_cnt)/2;	
-		    EncoderR_cnt=(Encoder1_cnt+Encoder3_cnt)/2;
+				
+//			//	EncoderL_cnt=Encoder1_cnt;
+//				EncoderL_cnt=(Encoder2_cnt+Encoder4_cnt)/2;	
+//		    EncoderR_cnt=(Encoder1_cnt+Encoder3_cnt)/2;
 			  
-        // 2. 更新实际位置
-        now_position1 += EncoderL_cnt;
-//      now_position2 += Encoder2_cnt;
-//      now_position3 += Encoder3_cnt;
-      now_position4 += EncoderR_cnt;
+//        // 2. 更新实际位置
+//        now_position = (now_position1+now_position2+now_position3+now_position4)/4;
+          now_position_L = (now_position2+now_position4)/2;
+					now_position_R = (now_position1+now_position3)/2;
+//        now_position1 += Encoder1_cnt;
+//        now_position2 += Encoder2_cnt;
+//				now_position3 += Encoder3_cnt;
+//        now_position4 += Encoder4_cnt;
+
+
+
+
+
+
 	   //计算当前转数
-//	   Rpm_Num = Num_AllEncoder(now_position1);
+	   Rpm_Num = Num_AllEncoder(now_position1);
        
 	   
-//	   
+	   
         // 3. 停止条件判断
-     if((labs(now_position1 - Target_Position) <100)&&(labs(now_position4 - Target_Position) <100)) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
-	
-        {
-            Motor1_SetSpeed(0);
-            Motor2_SetSpeed(0);
-			      Motor3_SetSpeed(0);
- 		        Motor4_SetSpeed(0);
+//     if((labs(now_position_L - Target_Position) <100)&&(labs(now_position_R - Target_Position) <100)) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
+//	
+//        {
+//            Motor1_SetSpeed(0);
+//            Motor2_SetSpeed(0);
+//			      Motor3_SetSpeed(0);
+// 		        Motor4_SetSpeed(0);
 
-           // 设置重置标志（下次中断时执行）
-            need_reset = 1;
-		
-        }
-        else {
+//           // 设置重置标志（下次中断时执行）
+//            need_reset = 1;
+//		
+//        }
+//        else {
 
-//			// 计算期望位置、期望速度（状态机中给定，用于限幅）
+			// 计算期望位置、期望速度（状态机中给定，用于限幅）
 			Target_Velocity = Rpm_Encoder_Cnt(rpm);		/* 将转速转化为10ms的脉冲数，目标速度 */
 			Target_Position = Pulse_Encoder_Cnt(num);	/* 将圈数转化为目标脉冲数，目标位置 */
 			
-			//new;测速度环用的
-//			  target_velocity_L=Rpm_Encoder_Cnt(rpm);
-//        target_velocity_L2=Rpm_Encoder_Cnt(rpm);
-//        target_velocity_R=Rpm_Encoder_Cnt(rpm);
-//        target_velocity_R2=Rpm_Encoder_Cnt(rpm);
-			
+//			//new;测速度环用的
+			  target_velocity_L=Rpm_Encoder_Cnt(rpm);
+        target_velocity_L2=Rpm_Encoder_Cnt(rpm);
+        target_velocity_R=Rpm_Encoder_Cnt(rpm);
+        target_velocity_R2=Rpm_Encoder_Cnt(rpm);
+//			
 //			// 4. 位置环计算目标速度
-           target_velocity_L = Position_PID_Left(now_position1, Target_Position,0);
-           target_velocity_L2 = Position_PID_Left(now_position1, Target_Position,0);
-		   target_velocity_R = Position_PID_Right(now_position3, Target_Position,0);
-		   target_velocity_R2 = Position_PID_Right(now_position3, Target_Position,0);
-		
-         		
-           target_velocity_L = Xianfu(target_velocity_L, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
-           target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(rpm));
-           target_velocity_R= Xianfu(target_velocity_R, Rpm_Encoder_Cnt(rpm));
-		       target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(rpm));
-			
-		       target_velocity_L = Xianfu(target_velocity_L, Rpm_Encoder_Cnt(Rpm_Max));  //限幅在最大转速内
-           target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(Rpm_Max));
-           target_velocity_R= Xianfu(target_velocity_R, Rpm_Encoder_Cnt(Rpm_Max));
-	         target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(Rpm_Max));
+//           target_velocity_L = Position_PID_Left(now_position_L, Target_Position,0);
+//           target_velocity_L2 = Position_PID_Left(now_position_L, Target_Position,0);
+//		   target_velocity_R = Position_PID_Right(now_position_R, Target_Position,0);
+//		   target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
+//		
+//         		
+//           target_velocity_L = Xianfu(target_velocity_L, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
+//           target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(rpm));
+//           target_velocity_R= Xianfu(target_velocity_R, Rpm_Encoder_Cnt(rpm));
+//		       target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(rpm));
+//			
+//		       target_velocity_L = Xianfu(target_velocity_L, Rpm_Encoder_Cnt(Rpm_Max));  //限幅在最大转速内
+//           target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(Rpm_Max));
+//           target_velocity_R= Xianfu(target_velocity_R, Rpm_Encoder_Cnt(Rpm_Max));
+//	         target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(Rpm_Max));
 
 
+
+        	
 			
             // 5. 速度环计算PWM
-          speed_output_L = Incremental_PID_Left(EncoderL_cnt, target_velocity_L,0);
-
-	    		speed_output_R = Incremental_PID_Right(EncoderR_cnt, target_velocity_R,0);
+          speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L,0);
+          speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L,0);
+	    		speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R,0);
+					speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R,0);
 
 			
-           speed_output_L = Xianfu(speed_output_L, PWM_MAX);
-						 speed_output_L = Xianfu(speed_output_L, Target_Velocity);
+          speed_output_L1 = Xianfu(speed_output_L1, PWM_MAX);
+					//	 speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
+					speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
+					//	 speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
 
-			speed_output_R = Xianfu(speed_output_R, PWM_MAX);
-            speed_output_R = Xianfu(speed_output_L,Target_Velocity );
-			
+			    speed_output_R1 = Xianfu(speed_output_R1, PWM_MAX);
+          //   speed_output_R1 = Xianfu(speed_output_R1,Target_Velocity );
+			    speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
+          //   speed_output_R2 = Xianfu(speed_output_R2,Target_Velocity );
 
-             Motor1_SetSpeed(speed_output_R);
-			 Motor2_SetSpeed(speed_output_L);
-			Motor3_SetSpeed(-speed_output_R);
-			 Motor4_SetSpeed(speed_output_L);
+             Motor1_SetSpeed(speed_output_R1);
+			       Motor2_SetSpeed(speed_output_L1);
+			       Motor3_SetSpeed(-speed_output_R2);
+			       Motor4_SetSpeed(speed_output_L2);
 //       i = EncoderCnt_Rpm(Encoder2_cnt); //测最大速用的
 
 }
 				
 	
         
-			}	
-    
-		 
+				 
 //Data_send
 //	(Target_Position, 
-//	speed_output_L, 
-//	Encoder3_cnt, 
-//		speed_output_R
+//	now_position_L ,
+//	now_position2,
+//	Encoder1_cnt
+//		
 //	);     	
- 
+ Data_send
+	(target_velocity_L, 
+	speed_output_L1 ,
+	speed_output_L2,
+	Encoder1_cnt
+	);
 	 
-
 }
+
 
  
 	

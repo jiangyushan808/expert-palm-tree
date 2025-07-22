@@ -34,7 +34,7 @@ I (..\Core\Inc\tim.h)(0x687F1608)
 I (..\Core\Inc\usart.h)(0x687F1608)
 I (..\Core\Inc\gpio.h)(0x687F1607)
 I (..\MDK-ARM\pid.h)(0x687D0CC8)
-I (..\MDK-ARM\encoder.h)(0x687F40B3)
+I (..\MDK-ARM\encoder.h)(0x687FB5C3)
 I (..\MDK-ARM\jy61.h)(0x687D0CC8)
 I (..\MDK-ARM\AUNO.h)(0x687D0CC8)
 I (..\MDK-ARM\motor.h)(0x687F4033)
@@ -724,7 +724,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_pwr_ex.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h)(0x685CA18F)
-F (.\pid.c)(0x687F2A4F)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -Oz -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../MDK-ARM -I ../Drivers-I./RTE/_cc_car-IC:/Users/jiangyushan/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="542" -DSTM32F401xC -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F401xC-o "cc car/pid.o" -MMD)
+F (.\pid.c)(0x687FC196)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -Oz -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../MDK-ARM -I ../Drivers-I./RTE/_cc_car-IC:/Users/jiangyushan/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="542" -DSTM32F401xC -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F401xC-o "cc car/pid.o" -MMD)
 I (..\Core\Inc\main.h)(0x687F1916)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x685CA18F)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x687F1609)
@@ -753,7 +753,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h)(0x685CA18F)
 I (..\Core\Inc\tim.h)(0x687F1608)
-I (..\MDK-ARM\encoder.h)(0x687F40B3)
+I (..\MDK-ARM\encoder.h)(0x687FB5C3)
 I (..\MDK-ARM\pid.h)(0x687D0CC8)
 F (.\pid.h)(0x687D0CC8)()
 F (.\motor.c)(0x687F46D4)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -Oz -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../MDK-ARM -I ../Drivers-I./RTE/_cc_car-IC:/Users/jiangyushan/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="542" -DSTM32F401xC -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F401xC-o "cc car/motor.o" -MMD)
@@ -786,7 +786,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h)(0x685CA18F)
 I (..\Core\Inc\main.h)(0x687F1916)
 I (..\Core\Inc\tim.h)(0x687F1608)
 F (.\motor.h)(0x687F4033)()
-F (.\encoder.c)(0x687F46F6)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -Oz -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../MDK-ARM -I ../Drivers-I./RTE/_cc_car-IC:/Users/jiangyushan/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="542" -DSTM32F401xC -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F401xC-o "cc car/encoder.o" -MMD)
+F (.\encoder.c)(0x687FBAE3)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -Oz -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../MDK-ARM -I ../Drivers-I./RTE/_cc_car-IC:/Users/jiangyushan/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="542" -DSTM32F401xC -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F401xC-o "cc car/encoder.o" -MMD)
 I (..\Core\Inc\main.h)(0x687F1916)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x685CA18F)
 I (..\Core\Inc\stm32f4xx_hal_conf.h)(0x687F1609)
@@ -815,13 +815,13 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h)(0x685CA18F)
 I (..\MDK-ARM\pid.h)(0x687D0CC8)
-I (..\MDK-ARM\encoder.h)(0x687F40B3)
+I (..\MDK-ARM\encoder.h)(0x687FB5C3)
 I (..\Core\Inc\tim.h)(0x687F1608)
 I (..\MDK-ARM\motor.h)(0x687F4033)
 I (..\MDK-ARM\AUNO.h)(0x687D0CC8)
 I (..\Core\Inc\usart.h)(0x687F1608)
 I (..\MDK-ARM\JY61.h)(0x687D0CC8)
-F (.\encoder.h)(0x687F40B3)()
+F (.\encoder.h)(0x687FB5C3)()
 F (.\ANUO.c)(0x687D0CC8)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -Oz -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../MDK-ARM -I ../Drivers-I./RTE/_cc_car-IC:/Users/jiangyushan/AppData/Local/Arm/Packs/ARM/CMSIS/6.2.0/CMSIS/Core/Include-D__UVISION_VERSION="542" -DSTM32F401xC -D_RTE_ -DUSE_HAL_DRIVER -DSTM32F401xC-o "cc car/anuo.o" -MMD)
 I (..\Core\Inc\main.h)(0x687F1916)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal.h)(0x685CA18F)
@@ -851,7 +851,7 @@ I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h)(0x685CA18F)
 I (..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h)(0x685CA18F)
 I (AUNO.h)(0x687D0CC8)
-I (encoder.h)(0x687F40B3)
+I (encoder.h)(0x687FB5C3)
 I (..\MDK-ARM\pid.h)(0x687D0CC8)
 I (motor.h)(0x687F4033)
 I (pid.h)(0x687D0CC8)
