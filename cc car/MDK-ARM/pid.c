@@ -3,6 +3,8 @@
 #include <encoder.h>
 long Integral_bias_Left = 0 ;
 long Integral_bias_Right = 0 ; /* 偏差累积 */
+float Incremental_Integral_Bias_Left = 0;
+float Incremental_Integral_Bias_Right = 0;
 
 float Bias_Left = 0,Last_bias_Left = 0,Prev_bias_Left = 0;
 float Bias_Right = 0,Last_bias_Right = 0,Prev_bias_Right = 0;
@@ -13,8 +15,9 @@ long Integral_bias_yaw = 0;
 float Position_KP_L=0.03,Position_KI_L=0,Position_KD_L=0;//6.382 
 float Position_KP_R=22,Position_KI_R=0,Position_KD_R=0;//6.382 
 /*内环 速度环*/
-float Incremental_KP_L =4.2,Incremental_KI_L =  0.0005 , Incremental_KD_L = 0.5;  
-float Incremental_KP_R = 1,Incremental_KI_R =  0 , Incremental_KD_R = 0; 
+float Incremental_KP_L =1.65,Incremental_KI_L =  0.076 , Incremental_KD_L = 0.1;  //1.65，0.076，0.1
+float Incremental_KP_R = 1.65,Incremental_KI_R = 0.076 ,Incremental_KD_R = 0.1; 
+
 
 /*********************角度环1*********************/
 float Yaw_KP = 20.0, Yaw_KI = 0.1, Yaw_KD = 40.0;
@@ -135,9 +138,10 @@ int Incremental_PID_Left(int reality,int target, int reset)
     }
    
 	 Bias_Left=target-reality;                                  /* 计算偏差 */
-    
+
+		
 	 Pwm += (Incremental_KP_L*(Bias_Left-Last_bias_Left))               /* 比例环节 */
-           +(Incremental_KI_L*Bias_Left)                           /* 积分环节 */
+           +Incremental_KI_L*Bias_Left                                              /* 积分环节 */
            +(Incremental_KD_L*(Bias_Left - 2 * Last_bias_Left + Prev_bias_Left));  /* 微分环节 */ 
     
    Prev_bias_Left=Last_bias_Left;                                   /* 保存上上次偏差 */
@@ -164,9 +168,10 @@ int Incremental_PID_Right(int reality,int target, int reset)
 	
 
 	 Bias_Right=target-reality;                                   /* 计算偏差 */
-    
+		
+		
 	 Pwm += (Incremental_KP_R*(Bias_Right-Last_bias_Right))               /* 比例环节 */
-           +(Incremental_KI_R*Bias_Right)                           /* 积分环节 */
+           +Incremental_KI_R*Bias_Right                      /* 积分环节 */
            +(Incremental_KD_R*(Bias_Right - 2 * Last_bias_Right + Prev_bias_Right));  /* 微分环节 */ 
     
    Prev_bias_Right=Last_bias_Right;                                   /* 保存上上次偏差 */

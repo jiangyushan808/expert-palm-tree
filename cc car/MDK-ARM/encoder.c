@@ -41,10 +41,10 @@ long Target_Position=3120*5,Reality_Position=0;   /* 目标位置，实际位置 */
 long now_position3,now_position2,now_position1,now_position4,now_position_L,now_position_R,now_position;
  float position1_output =0;
   //PID计算出来的目标速度 单位脉冲每采样周期 最大值90
- float target_velocity_L;
- float target_velocity_L2;
- float target_velocity_R;
- float target_velocity_R2;
+ float target_velocity_L=0;
+ float target_velocity_L2=0;
+ float target_velocity_R=0;
+ float target_velocity_R2=0;
  //PID计算出来的PWM
  float speed_output_L1; 
  float speed_output_L2;
@@ -57,14 +57,29 @@ long now_position3,now_position2,now_position1,now_position4,now_position_L,now_
 // long Target_Position=3120*2,Reality_Position=0;   /* test用目标位置，实际位置 */
 
 // 限制速度变化量的函数
+/**
+ * @brief 限制目标速度变化率（软启动用）
+ * 
+ * @param currentSpeed 当前速度值（上一周期控制器使用的目标速度）
+ * @param targetSpeed  希望到达的最终目标速度（例如Rpm_Encoder_Cnt(rpm)）
+ * @param maxChange    每次控制周期允许最大变化量（单位：脉冲/采样周期）
+ * 
+ * @return float 返回更新后的速度值（相对于currentSpeed逐步逼近targetSpeed）
+ * 
+ * @note
+ * - 这个函数的作用是**让目标速度变化更平滑，防止系统瞬间跳变导致超调**；
+ * - 如果目标速度变化太大，系统响应会过猛；加入这个函数可以避免这种情况；
+ * - 应用于速度环时，对 `target_velocity` 做逐步限制提升系统稳定性。
+ */
 float limitSpeedChange(float currentSpeed, float targetSpeed, float maxChange) {
-    float speedChange = targetSpeed - currentSpeed;
+	
+    float speedChange = targetSpeed - currentSpeed; // 计算当前需要变化的速度差值
     if (speedChange > maxChange) {
-        speedChange = maxChange;
+        speedChange = maxChange;   // 如果变化量超过正向最大值，则限制为 maxChange
     } else if (speedChange < -maxChange) {
-        speedChange = -maxChange;
+        speedChange = -maxChange;    // 如果变化量超过负向最大值（即目标大幅降低），也限制
     }
-    return currentSpeed + speedChange;
+    return currentSpeed + speedChange;  // 返回当前速度 + 限幅后的变化量（逐步逼近目标速度）
 }
 int Xianfu(int data,int max)
 {	
@@ -172,6 +187,8 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
 //////   if(JY61_GetPitch <=-10)
 
 ////}	
+
+static uint8_t pid_initialized = 0;  //test PID
 ///*串级PID*/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) 
 	{
@@ -221,7 +238,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				
         Encoder1_cnt =-(short)Motor1Speed;
         Encoder2_cnt = (short)Motor2Speed;
-        Encoder3_cnt = (short)Motor3Speed;
+        Encoder3_cnt = -(short)Motor3Speed;
         Encoder4_cnt = (short)Motor4Speed;//只有电机1是负的
 				
 				
@@ -231,8 +248,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			  
 //        // 2. 更新实际位置
 //        now_position = (now_position1+now_position2+now_position3+now_position4)/4;
-          now_position_L = (now_position2+now_position4)/2;
-					now_position_R = (now_position1+now_position3)/2;
+//          now_position_L = (now_position2+now_position4)/2;
+//					now_position_R = (now_position1+now_position3)/2;
 //        now_position1 += Encoder1_cnt;
 //        now_position2 += Encoder2_cnt;
 //				now_position3 += Encoder3_cnt;
@@ -276,8 +293,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //			// 4. 位置环计算目标速度
 //           target_velocity_L = Position_PID_Left(now_position_L, Target_Position,0);
 //           target_velocity_L2 = Position_PID_Left(now_position_L, Target_Position,0);
-//		   target_velocity_R = Position_PID_Right(now_position_R, Target_Position,0);
-//		   target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
+//		       target_velocity_R = Position_PID_Right(now_position_R, Target_Position,0);
+//		       target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
 //		
 //         		
 //           target_velocity_L = Xianfu(target_velocity_L, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
@@ -295,25 +312,50 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         	
 			
             // 5. 速度环计算PWM
-          speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L,0);
-          speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L,0);
-	    		speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R,0);
-					speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R,0);
+												      // test  PID调用
+        if (pid_initialized == 0) {
+            // 触发PID清零
+            speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L, 1);
+            speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L, 1);
+            speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R, 1);
+            speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R, 1);
+       
+//					 speed_output_R1 =  Incremental_PID_Left(Encoder1_cnt, target_velocity_R, 1);
+//            speed_output_R2 =  Incremental_PID_Left(Encoder3_cnt, target_velocity_R, 1);
 
-			
+            pid_initialized = 1; // 标记已初始化
+        } else {
+            // 正常PID计算
+            speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L, 0);
+            speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L, 0);
+            speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R, 0);
+            speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R, 0);
+					
+//					 speed_output_R1 =  Incremental_PID_Left(Encoder1_cnt, target_velocity_R, 0);
+//            speed_output_R2 =  Incremental_PID_Left(Encoder3_cnt, target_velocity_R, 0);
+
+					
+        }
+//			
+//          speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L,0);
+//          speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L,0);
+//	    		speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R,0);
+//					speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R,0);
+
+			    
           speed_output_L1 = Xianfu(speed_output_L1, PWM_MAX);
-					//	 speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
+			//	  speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
 					speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
-					//	 speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
+			//	  speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
 
 			    speed_output_R1 = Xianfu(speed_output_R1, PWM_MAX);
-          //   speed_output_R1 = Xianfu(speed_output_R1,Target_Velocity );
+      //   speed_output_R1 = Xianfu(speed_output_R1,Target_Velocity );
 			    speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
-          //   speed_output_R2 = Xianfu(speed_output_R2,Target_Velocity );
+       //   speed_output_R2 = Xianfu(speed_output_R2,Target_Velocity );
 
              Motor1_SetSpeed(speed_output_R1);
 			       Motor2_SetSpeed(speed_output_L1);
-			       Motor3_SetSpeed(-speed_output_R2);
+			       Motor3_SetSpeed(speed_output_R2);
 			       Motor4_SetSpeed(speed_output_L2);
 //       i = EncoderCnt_Rpm(Encoder2_cnt); //测最大速用的
 
@@ -326,16 +368,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //	(Target_Position, 
 //	now_position_L ,
 //	now_position2,
-//	Encoder1_cnt
-//		
-//	);     	
+//	Encoder1_cnt		
+//	);  
+
  Data_send
-	(target_velocity_L, 
-	speed_output_L1 ,
-	speed_output_L2,
-	Encoder1_cnt
+	(
+  speed_output_L1,
+  speed_output_L2, 
+	speed_output_R1,
+	target_velocity_L
 	);
-	 
+
+// Data_send
+//	(
+// Encoder1_cnt,
+//  Encoder2_cnt, 
+// Encoder3_cnt,
+//  Encoder4_cnt
+//	);
+//	 
 }
 
 
