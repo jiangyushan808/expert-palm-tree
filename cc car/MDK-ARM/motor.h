@@ -9,6 +9,7 @@
 #define PWM_MIN -99
 #define Dead_Voltage  100	//电机死区电压 PMW = 150
 #define Rpm_Max       173     /* 最大转速  rpm */
+#define DELTA_PWM_MAX  3       //增量式PID中对单次增量限幅（delta_pwm限幅） pwm的10%
 
 
 //#define MOTOR_GO HAL_GPIO_WritePin(GPIOA, AIN1_Pin, GPIO_PIN_RESET); HAL_GPIO_WritePin(GPIOB, AIN2_Pin, GPIO_PIN_SET)

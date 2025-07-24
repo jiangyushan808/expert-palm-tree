@@ -86,7 +86,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  JY61_Init(&huart1);     // �������� JY61 ����
+  JY61_Init(&huart1);     // **JY61**
   /* USER CODE END Init */
 
   /* Configure the system clock */

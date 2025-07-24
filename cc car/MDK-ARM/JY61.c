@@ -47,6 +47,14 @@ void JY61_ReceiveHandler(uint8_t byte)
     // 继续接收下一个字节（必须重新启动中断）
     HAL_UART_Receive_IT(jy61_huart, &jy61_rx_byte, 1);
 }
+//中断回调
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart == jy61_huart) 
+    {
+        JY61_ReceiveHandler(jy61_rx_byte);  // 处理接收到的1字节
+    }
+}
 
 /**
  * @brief 获取 Yaw（偏航角，Z轴）单位为°

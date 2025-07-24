@@ -25,7 +25,4 @@ extern float Incremental_Integral_Bias_Right;
 extern float Bias_Left, Last_bias_Left, Prev_bias_Left;
 extern float Bias_Right, Last_bias_Right, Prev_bias_Right;
 static long Bias, Last_Bias; 
-
- extern float Incremental_KP_L ,Incremental_KI_L , Incremental_KD_L ;  
- extern float Incremental_KP_R,Incremental_KI_R  , Incremental_KD_R ; 
 #endif

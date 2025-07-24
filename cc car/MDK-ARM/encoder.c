@@ -12,6 +12,8 @@
 #include <JY61.h>
 
 
+float yaw ,pitch , roll;  // 单位：°
+
 //读取编码器计数值
 int16_t    Motor1Speed;
 int16_t    Motor2Speed;
@@ -19,15 +21,13 @@ int16_t    Motor3Speed;
 int16_t    Motor4Speed;
 //编码器每采样周期的脉冲数,单位 脉冲每采样周期
 short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt,EncoderR_cnt; /*pwm给1000 测得最大值89*/
-int t=1;
-float i;
 
 int num = 7;		//num，圈数的意思，目标圈数
-int rpm = 173/2;		//RPM目标转速  从最大脉冲每采样周期转化过来最大转速173
+int rpm = 173/3;		//RPM目标转速  从最大脉冲每采样周期转化过来最大转速173
 
 float real_num = 0; //状态机
 float angle_real = -1.2;
-float Rpm_Num = 0;//计算出的转数
+float Rpm_Num_L = 0,Rpm_Num_R = 0;//计算出的转数
 
 uint8_t L_flag = 1;  //（当L_flag == 1时：用PID
 uint8_t R_flag = 1;
@@ -35,7 +35,7 @@ uint8_t R_flag = 1;
 
 /* 系统统一转换为脉冲数进行处理，脉冲数分辨率高，控制精度高 */
 long Target_Velocity,Reality_Velocity;   /* 目标速度，实际速度 */
-long Target_Position=3120*5,Reality_Position=0;   /* 目标位置，实际位置 */
+long Target_Position=0,Reality_Position=0;   /* 目标位置，实际位置 */
 
 //编码器位置累加
 long now_position3,now_position2,now_position1,now_position4,now_position_L,now_position_R,now_position;
@@ -51,10 +51,6 @@ long now_position3,now_position2,now_position1,now_position4,now_position_L,now_
  float speed_output_R1;
  float speed_output_R2;
  
-
- 
- //float target_velocity ;//用于test满速100 
-// long Target_Position=3120*2,Reality_Position=0;   /* test用目标位置，实际位置 */
 
 // 限制速度变化量的函数
 /**
@@ -159,11 +155,11 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
         
         Error_Handler();
     }
-		
-		
+	
 
 }
 
+    
 /////******主控*****/
 ////void Use_Pid_Tocontrol()
 ////{
@@ -193,7 +189,10 @@ static uint8_t pid_initialized = 0;  //test PID
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) 
 	{
     if (htim == &htim1) { 
-		
+			
+		yaw = JY61_GetYaw();     // 单位：°
+    pitch = JY61_GetPitch();
+    roll = JY61_GetRoll();
 
 		static unsigned int timecnt;
       if (++timecnt >= 100)	
@@ -201,12 +200,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);	//500ms翻转PC13电平,测试500ms，为了测试10ms外部中断，用示波器观测也是10ms一个下降沿
 		timecnt = 0;
 	  }
-	
+	 
+	  
 	
 		 static uint8_t need_reset = 0; // new：重置标志
 
           
-//        
+        
 //        //new: 检查是否需要重置
 //        if(need_reset) {
 //            // 重置位置环内部状态
@@ -242,27 +242,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Encoder4_cnt = (short)Motor4Speed;//只有电机1是负的
 				
 				
-//			//	EncoderL_cnt=Encoder1_cnt;
-//				EncoderL_cnt=(Encoder2_cnt+Encoder4_cnt)/2;	
-//		    EncoderR_cnt=(Encoder1_cnt+Encoder3_cnt)/2;
+
 			  
 //        // 2. 更新实际位置
-//        now_position = (now_position1+now_position2+now_position3+now_position4)/4;
-//          now_position_L = (now_position2+now_position4)/2;
-//					now_position_R = (now_position1+now_position3)/2;
-//        now_position1 += Encoder1_cnt;
-//        now_position2 += Encoder2_cnt;
-//				now_position3 += Encoder3_cnt;
-//        now_position4 += Encoder4_cnt;
 
+        now_position1 += Encoder1_cnt;
+        now_position2 += Encoder2_cnt;
+				now_position3 += Encoder3_cnt;
+        now_position4 += Encoder4_cnt;
+//        now_position = (now_position1+now_position2+now_position3+now_position4)/4;
+          now_position_L = (now_position2+now_position4)/2;
+					now_position_R = (now_position1+now_position3)/2;
 
 
 
 
 
 	   //计算当前转数
-	   Rpm_Num = Num_AllEncoder(now_position1);
-       
+	   Rpm_Num_L = Num_AllEncoder(now_position2);
+     Rpm_Num_R = Num_AllEncoder(now_position1); 
 	   
 	   
         // 3. 停止条件判断
@@ -320,8 +318,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R, 1);
             speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R, 1);
        
-//					 speed_output_R1 =  Incremental_PID_Left(Encoder1_cnt, target_velocity_R, 1);
-//            speed_output_R2 =  Incremental_PID_Left(Encoder3_cnt, target_velocity_R, 1);
 
             pid_initialized = 1; // 标记已初始化
         } else {
@@ -330,13 +326,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
             speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L, 0);
             speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R, 0);
             speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R, 0);
-					
-//					 speed_output_R1 =  Incremental_PID_Left(Encoder1_cnt, target_velocity_R, 0);
-//            speed_output_R2 =  Incremental_PID_Left(Encoder3_cnt, target_velocity_R, 0);
+
 
 					
-        }
-//			
+     }
+		
 //          speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L,0);
 //          speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L,0);
 //	    		speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R,0);
@@ -344,9 +338,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 			    
           speed_output_L1 = Xianfu(speed_output_L1, PWM_MAX);
-			//	  speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
+		// 	  speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
 					speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
-			//	  speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
+		//	  speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
 
 			    speed_output_R1 = Xianfu(speed_output_R1, PWM_MAX);
       //   speed_output_R1 = Xianfu(speed_output_R1,Target_Velocity );
@@ -357,14 +351,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			       Motor2_SetSpeed(speed_output_L1);
 			       Motor3_SetSpeed(speed_output_R2);
 			       Motor4_SetSpeed(speed_output_L2);
-//       i = EncoderCnt_Rpm(Encoder2_cnt); //测最大速用的
 
 }
 				
 	
         
-				 
-//Data_send
+//				 
+//   Data_send
 //	(Target_Position, 
 //	now_position_L ,
 //	now_position2,
@@ -373,20 +366,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
  Data_send
 	(
-  speed_output_L1,
-  speed_output_L2, 
-	speed_output_R1,
-	target_velocity_L
+ Encoder1_cnt,
+  Encoder2_cnt, 
+ Encoder3_cnt,
+ target_velocity_L
 	);
-
-// Data_send
-//	(
-// Encoder1_cnt,
-//  Encoder2_cnt, 
-// Encoder3_cnt,
-//  Encoder4_cnt
-//	);
-//	 
+	 
 }
 
 
