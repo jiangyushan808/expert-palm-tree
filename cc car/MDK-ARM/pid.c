@@ -184,7 +184,7 @@ int Incremental_PID_Right(int reality,int target, int reset)
 
 
 
-//角度环6
+//角度环
 int JY61P_Yaw_correct(float real_yaw, float target_yaw)
 {
 	static long PWM_OUT;
