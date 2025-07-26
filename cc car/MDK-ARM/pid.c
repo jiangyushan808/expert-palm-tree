@@ -11,8 +11,8 @@ float Bias_yaw = 0,Last_bias_yaw = 0;
 long Integral_bias_yaw = 0;
 
 /* 位置环PID系数 */
-float Position_KP_L=0.5,Position_KI_L=0,Position_KD_L=0;//6.382 
-float Position_KP_R=0.5,Position_KI_R=0,Position_KD_R=0;//6.382 
+float Position_KP_L=0.13,Position_KI_L=0.00112,Position_KD_L=1.001;//6.382 
+float Position_KP_R=0.13,Position_KI_R=0.00112,Position_KD_R=1.001;//6.382 
 /*内环 速度环*/
 float Incremental_KP_L =1.65,Incremental_KI_L =  0.275, Incremental_KD_L = 0.1;  //1.65，0.275，0.1
 float Incremental_KP_R = 1.65,Incremental_KI_R = 0.275,Incremental_KD_R = 0.1; 
@@ -185,13 +185,16 @@ int Incremental_PID_Right(int reality,int target, int reset)
 
 
 //角度环
-int JY61P_Yaw_correct(float real_yaw, float target_yaw)
+int JY61P_Yaw_correct(float curren_yaw, float target_yaw)
 {
-	static long PWM_OUT;
-	Bias_yaw = target_yaw - real_yaw; /* 计算偏差 */
+	static float PWM_OUT;
+	  
+    static float Integral_bias_yaw = 0;
+    static float Last_bias_yaw = 0;
+	 float Bias_yaw = target_yaw - curren_yaw; /* 计算偏差 */
 	Integral_bias_yaw += Bias_yaw;	 /* 偏差累积 */
-	if(real_num == 2)
-		Integral_bias_yaw=0;
+	//if(real_num == 2)
+	//	Integral_bias_yaw=0;
 	if (Integral_bias_yaw > 1500)
 		Integral_bias_yaw = 1500; /* 积分限幅 */
 	if (Integral_bias_yaw < -1500)

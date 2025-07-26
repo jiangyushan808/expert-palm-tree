@@ -35,6 +35,7 @@
 #include "math.h"
 #include <motor.h>
 #include <stdlib.h>
+#include <jy61p_new.h> 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +56,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern uint8_t RxData;
+float target_yaw;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -86,7 +88,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  JY61_Init(&huart1);     // **JY61**
+  
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -122,6 +124,11 @@ HAL_TIM_Base_Start_IT(&htim4);
 HAL_TIM_Base_Start_IT(&htim5);
 HAL_TIM_Base_Start_IT(&htim1);
 __HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);	
+HAL_UART_Receive_IT(&huart1, &RxData, 1);
+
+//HAL_UART_Receive_IT (	&huart1 ,angle)
+
+target_yaw=Yaw;
 
   /* USER CODE END 2 */
 
@@ -129,6 +136,17 @@ __HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+//if (Yaw >60 )
+//{
+//    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET); 
+//}
+//else
+//{
+//    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);  
+////HAL_Delay (5000);
+//}
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

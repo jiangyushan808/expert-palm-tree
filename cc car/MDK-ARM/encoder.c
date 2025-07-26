@@ -9,10 +9,10 @@
 #include <stdlib.h>
 #include <AUNO.h> 
 #include <usart.h> 
-#include <JY61.h>
+#include "jy61p_new.h" 
 
 
-float yaw ,pitch , roll;  // 单位：°
+float now_yaw ,pitch , roll,yaw_correction;  // 单位：°
 
 //读取编码器计数值
 int16_t    Motor1Speed;
@@ -22,8 +22,11 @@ int16_t    Motor4Speed;
 //编码器每采样周期的脉冲数,单位 脉冲每采样周期
 short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt,EncoderR_cnt; /*pwm给1000 测得最大值89*/
 
-int num = 3;		//num，圈数的意思，目标圈数
+
+int num = 10;		//num，圈数的意思，目标圈数
 int rpm = 173/3;		//RPM目标转速  从最大脉冲每采样周期转化过来最大转速173
+
+
 
 float real_num = 0; //状态机
 float angle_real = -1.2;
@@ -51,6 +54,8 @@ long now_position3,now_position2,now_position1,now_position4,now_position_L,now_
  float speed_output_R1;
  float speed_output_R2;
  
+
+
 
 // 限制速度变化量的函数
 /**
@@ -161,30 +166,41 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
 
     
 /////******主控*****/
-////void Use_Pid_Tocontrol()
-////{
-////	static int a = 0;
-////	if(a<=300 && real_num == 0) //前 300ms 电机停止
-////	{
-////		 a++;
-////		 L_flag=0;		R_flag=0;  //初始化时设为0，停止左右电机PID控制
-////         Motor1_SetSpeed(0);   
-////		 Motor2_SetSpeed(0);
-////		 Motor3_SetSpeed(0);
-////		 Motor4_SetSpeed(0);
-////		return;
-////	}
-////    else if(real_num == 0 && a>300)
-////	{
-////		rpm=86;                  //设置起始速度
-////		L_flag=1;		R_flag=1;//启用 PID
-////		real_num = 1;  // 第一段直线
-////	}
-//////   if(JY61_GetPitch <=-10)
+//void CAR_control()
+//{
+//	static int a = 0;
+//	if(a<=300 && real_num == 0) //前 300ms 电机停止
+//	{
+//		 a++;
+//		 L_flag=0;		R_flag=0;  //初始化时设为0，停止左右电机PID控制
+//         Motor1_SetSpeed(0);   
+//		 Motor2_SetSpeed(0);
+//		 Motor3_SetSpeed(0);
+//		 Motor4_SetSpeed(0);
+//		return;
+//	}
+//    else if(real_num == 0 && a>300)
+//	{
+//		rpm=86;                  //设置起始速度
+//		L_flag=1;		R_flag=1;//启用 PID
+//		real_num = 1;  // 第一段直线
+//	}
+////   if(JY61_GetPitch <=-10)
 
-////}	
-
-
+//}	
+//主控代码
+//void CAR_control()
+//{
+//	
+//	
+//	
+//	
+//	
+//	
+//	
+//	
+//	
+//}
 //static uint8_t pid_initialized = 0;  //test PID
 			
 	//*串级PID*/		
@@ -192,27 +208,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
     if (htim == &htim1) { 
 			
-		yaw = JY61_GetYaw();     // 单位：°
-    pitch = JY61_GetPitch();
-    roll = JY61_GetRoll();
-			
+  //500ms翻转PC13电平,测试500ms，为了测试10ms外部中断，用示波器观测也是10ms一个下降沿
+				static unsigned int timecnt;
+      if (++timecnt >= 100)	
+	  {
+		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);	
+		timecnt = 0;
+	  }
+		
+		
 			// 计算期望位置、期望速度（状态机中给定，用于限幅）
 			Target_Velocity = Rpm_Encoder_Cnt(rpm);		/* 将转速转化为10ms的脉冲数，目标速度 */
 			Target_Position = Pulse_Encoder_Cnt(num);	/* 将圈数转化为目标脉冲数，目标位置 */
-
-		static unsigned int timecnt;
-      if (++timecnt >= 100)	
-	  {
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);	//500ms翻转PC13电平,测试500ms，为了测试10ms外部中断，用示波器观测也是10ms一个下降沿
-		timecnt = 0;
-	  }
-	 
-	  
-	
-		 static uint8_t need_reset = 0; // new：重置标志
-
-          
         
+		
+	
+		
+//	 
+//	  
+//	
+		 static uint8_t need_reset = 0; // new：重置标志
+     
         //new: 检查是否需要重置
         if(need_reset) {
             // 重置位置环内部状态
@@ -225,11 +241,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
              Incremental_PID_Left(0, 0, 1);
 			       Incremental_PID_Right(0, 0, 1);		
             
+					
+					now_position_L =0;
+					now_position_R =0;
             // 清除重置标志
 
             need_reset = 0;
         }
 		 
+				//0.更正角度
+				yaw_correction =JY61P_Yaw_correct(Yaw,target_yaw);
+				
 
         // 1. 读取编码器
         Motor1Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim2);
@@ -258,7 +280,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         now_position2 += Encoder2_cnt;
 				now_position3 += Encoder3_cnt;
         now_position4 += Encoder4_cnt;
-//        now_position = (now_position1+now_position2+now_position3+now_position4)/4;
+//        now_position = (now_position1+now_position2+now_position3+now_position4)//效果不好
           now_position_L = (now_position2+now_position4)/2;
 					now_position_R = (now_position1+now_position3)/2;
 
@@ -287,19 +309,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         else {
 
 
-//			//new;测速度环用的
+//			//new;测只有速度环用的
 //			  target_velocity_L1=Rpm_Encoder_Cnt(rpm);
 //        target_velocity_L2=Rpm_Encoder_Cnt(rpm);
 //        target_velocity_R1=Rpm_Encoder_Cnt(rpm);
 //        target_velocity_R2=Rpm_Encoder_Cnt(rpm);
 			
 			// 4. 位置环计算目标速度
+					
            target_velocity_L1 = Position_PID_Left(now_position_L, Target_Position,0);
            target_velocity_L2 = Position_PID_Left(now_position_L, Target_Position,0);
 		       target_velocity_R1 = Position_PID_Right(now_position_R, Target_Position,0);
 		       target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
 
-         		
+         		target_velocity_L1 += yaw_correction;  // 左轮减去 yaw 偏差
+					  target_velocity_L2 += yaw_correction; 
+            target_velocity_R1 += -yaw_correction;  // 右轮加上 yaw 偏差
+            target_velocity_R2 += -yaw_correction; 
+					
            target_velocity_L1 = Xianfu(target_velocity_L1, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
            target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(rpm));
            target_velocity_R1= Xianfu(target_velocity_R1, Rpm_Encoder_Cnt(rpm));
@@ -312,9 +339,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 
 
-        	
+     static float prev_target_velocity_L1 = 0,prev_target_velocity_L2 = 0, prev_target_velocity_R1 = 0,prev_target_velocity_R2 = 0;
+
+   
+     target_velocity_L1 = limitSpeedChange(prev_target_velocity_L1, target_velocity_L1, 3);
+		 target_velocity_L2 = limitSpeedChange(prev_target_velocity_L2, target_velocity_L1, 3);
+     target_velocity_R1 = limitSpeedChange(prev_target_velocity_R1, target_velocity_R1, 3);
+		 target_velocity_R2 = limitSpeedChange(prev_target_velocity_R2, target_velocity_R1, 3);
+     prev_target_velocity_L1 = target_velocity_L1;
+		 prev_target_velocity_L2 = target_velocity_L2;
+     prev_target_velocity_R1 = target_velocity_R1;
+		 prev_target_velocity_R2 = target_velocity_R2;
 			
-            // 5. 速度环计算PWM
+            // 5. 只有速度环计算PWM
 //												      // test  PID调用
 //        if (pid_initialized == 0) {
 //            // 触发PID清零
@@ -360,9 +397,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 }
 				
-	
-        
-				 
+
+	 
    Data_send
 	(Target_Position, 
 	now_position_L ,

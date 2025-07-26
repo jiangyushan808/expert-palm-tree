@@ -95,7 +95,7 @@ void Error_Handler(void);
 #define Bpower3_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+extern float target_yaw;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -1,4 +1,4 @@
-#include "jy61p.h"
+#include "jy61p_new.h"
 
 static uint8_t RxBuffer[11];/*接收数据数组*/
 static volatile uint8_t RxState = 0;/*接收状态标志位*/
@@ -13,6 +13,8 @@ float Roll,Pitch,Yaw;/*角度信息，如果只需要整数可以改为整数类型*/
  */
 void jy61p_ReceiveData(uint8_t RxData)
 {
+	
+
 	uint8_t i,sum=0;
 	
 	if (RxState == 0)	//等待包头
@@ -40,7 +42,7 @@ void jy61p_ReceiveData(uint8_t RxData)
 		RxBuffer[RxIndex++] = RxData;
 		if(RxIndex == 11)	//接收完成
 		{
-			for(i=0;i<10;i++)
+			for( i=0;i<10;i++)
 			{
 				sum = sum + RxBuffer[i]; //计算校验和
 			}

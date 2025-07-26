@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F401xC</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../MDK-ARM;../Drivers</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../MDK-ARM;../Drivers;..\MDK-ARM;..\MDK-ARM</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -898,22 +898,17 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>jy61p</GroupName>
+          <GroupName>JY61P_NEW</GroupName>
           <Files>
             <File>
-              <FileName>JY61.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\JY61.h</FilePath>
-            </File>
-            <File>
-              <FileName>REG.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\REG.h</FilePath>
-            </File>
-            <File>
-              <FileName>JY61.c</FileName>
+              <FileName>jy61p_new.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\JY61.c</FilePath>
+              <FilePath>.\jy61p_new.c</FilePath>
+            </File>
+            <File>
+              <FileName>jy61p_new.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\jy61p_new.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -936,5 +931,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>cc car</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

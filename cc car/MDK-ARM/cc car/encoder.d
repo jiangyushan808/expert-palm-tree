@@ -26,5 +26,4 @@ cc\ car/encoder.o: encoder.c ..\Core\Inc\main.h \
   ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_tim_ex.h \
   ..\Drivers\STM32F4xx_HAL_Driver\Inc\stm32f4xx_hal_uart.h \
   ..\MDK-ARM\pid.h ..\MDK-ARM\encoder.h ..\Core\Inc\tim.h \
-  ..\MDK-ARM\motor.h ..\MDK-ARM\AUNO.h ..\Core\Inc\usart.h \
-  ..\MDK-ARM\JY61.h
+  ..\MDK-ARM\motor.h ..\MDK-ARM\AUNO.h ..\Core\Inc\usart.h jy61p_new.h
