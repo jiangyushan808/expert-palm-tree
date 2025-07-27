@@ -214,6 +214,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	  {
 		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);	
 		timecnt = 0;
+			
 	  }
 		
 		
@@ -242,6 +243,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			       Incremental_PID_Right(0, 0, 1);		
             
 					
+					//角度环
+					JY61P_Yaw_correct(0,0,1);
+					
 					now_position_L =0;
 					now_position_R =0;
             // 清除重置标志
@@ -250,8 +254,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         }
 		 
 				//0.更正角度
-				yaw_correction =JY61P_Yaw_correct(Yaw,target_yaw);
-				
+				float cunrent_yaw=JY61_GetYawCorrected(Yaw);
+//				float Target_yaw=JY61_GetYawCorrected(NO1_yaw);
+//				yaw_correction =JY61P_Yaw_correct(cunrent_yaw,Target_yaw);
+				yaw_correction =JY61P_Yaw_correct(cunrent_yaw,0,0);
+//				);
+				yaw_correction =Xianfu (yaw_correction ,40);
 
         // 1. 读取编码器
         Motor1Speed = (int16_t)__HAL_TIM_GET_COUNTER(&htim2);
@@ -294,7 +302,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	   
 	   
         // 3. 停止条件判断
-     if((labs(now_position_L - Target_Position) <50)&&(labs(now_position_R - Target_Position) <50)) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
+     if((labs(now_position_L - Target_Position) <10)&&(labs(now_position_R - Target_Position) <10)) //new*先判断是否到达目标，如果到达则停止并设置重置标志，否则进行正常的PID计算和输出。
 	
         {
             Motor1_SetSpeed(0);
@@ -322,10 +330,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		       target_velocity_R1 = Position_PID_Right(now_position_R, Target_Position,0);
 		       target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
 
-         		target_velocity_L1 += yaw_correction;  // 左轮减去 yaw 偏差
-					  target_velocity_L2 += yaw_correction; 
-            target_velocity_R1 += -yaw_correction;  // 右轮加上 yaw 偏差
-            target_velocity_R2 += -yaw_correction; 
+         		
 					
            target_velocity_L1 = Xianfu(target_velocity_L1, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
            target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(rpm));
@@ -389,10 +394,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			    speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
        //   speed_output_R2 = Xianfu(speed_output_R2,Target_Velocity );
 
-             Motor1_SetSpeed(speed_output_R1);
-			       Motor2_SetSpeed(speed_output_L1);
-			       Motor3_SetSpeed(speed_output_R2);
-			       Motor4_SetSpeed(speed_output_L2);
+             Motor1_SetSpeed(speed_output_R1+yaw_correction);
+			       Motor2_SetSpeed(speed_output_L1-yaw_correction);
+			       Motor3_SetSpeed(speed_output_R2+yaw_correction);
+			       Motor4_SetSpeed(speed_output_L2-yaw_correction);
 
 
 }
@@ -417,6 +422,3 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   }
 		
 }
-
- 
-	

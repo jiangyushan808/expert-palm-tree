@@ -96,6 +96,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 extern float target_yaw;
+extern float NO1_yaw;;
+float JY61_GetYawCorrected(float a);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

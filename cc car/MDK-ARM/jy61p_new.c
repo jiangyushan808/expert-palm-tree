@@ -4,7 +4,7 @@ static uint8_t RxBuffer[11];/*接收数据数组*/
 static volatile uint8_t RxState = 0;/*接收状态标志位*/
 static uint8_t RxIndex = 0;/*接受数组索引*/
 float Roll,Pitch,Yaw;/*角度信息，如果只需要整数可以改为整数类型*/
-
+uint8_t yaw_target_set = 0; 
 
 /**
  * @brief       数据包处理函数
@@ -34,6 +34,7 @@ void jy61p_ReceiveData(uint8_t RxData)
 			RxBuffer[RxIndex] = RxData;
 			RxState = 2;
 			RxIndex = 2; //进入下一状态
+			
 		}
 	}
 	
@@ -48,10 +49,19 @@ void jy61p_ReceiveData(uint8_t RxData)
 			}
 			if(sum == RxBuffer[10])		//校验成功
 			{
-				/*计算数据，根据数据内容选择对应的计算公式*/
-				Roll = ((uint16_t) ((uint16_t) RxBuffer[3] << 8 | (uint16_t) RxBuffer[2])) / 32768.0f * 180.0f;
-				Pitch = ((uint16_t) ((uint16_t) RxBuffer[5] << 8 | (uint16_t) RxBuffer[4])) / 32768.0f * 180.0f;
-				Yaw = ((uint16_t) ((uint16_t) RxBuffer[7] << 8 | (uint16_t) RxBuffer[6])) / 32768.0f * 180.0f;
+					/*计算数据，根据数据内容选择对应的计算公式*/
+		    Roll = ((int16_t) ((int16_t) RxBuffer[3] << 8 | (int16_t) RxBuffer[2])) / 32768.0f * 180.0f;
+				Pitch = ((int16_t) ((int16_t) RxBuffer[5] << 8 | (int16_t) RxBuffer[4])) / 32768.0f * 180.0f;
+				Yaw = ((int16_t) ((int16_t) RxBuffer[7] << 8 | (int16_t) RxBuffer[6])) / 32768.0f * 180.0f;
+			
+				if (!yaw_target_set)
+    {
+        NO1_yaw = Yaw ;
+        yaw_target_set = 1;
+    }
+			
+			
+			
 			}
 			RxState = 0;
 			RxIndex = 0; //读取完成，回到最初状态，等待包头

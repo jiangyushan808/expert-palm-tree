@@ -57,7 +57,7 @@
 
 /* USER CODE BEGIN PV */
 extern uint8_t RxData;
-float target_yaw;
+float yaw_offset = 0;  // 全局变量，记录偏移值
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,7 +68,28 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+float target_yaw;       // 初始角度偏移
+float NO1_yaw;
 
+
+// 获取校准后的 Yaw
+float JY61_GetYawCorrected(float a)
+{
+    //float raw = Yaw;
+    float init_yaw= a - NO1_yaw;
+
+///*角度转换*/
+//	if(target1_yaw< 0)
+//	{	
+//		target1_yaw = target1_yaw+360;
+//	}
+//	else 
+//	{
+//		target1_yaw =target1_yaw;
+//	}
+
+    return init_yaw;
+}
 /* USER CODE END 0 */
 
 /**
@@ -128,7 +149,9 @@ HAL_UART_Receive_IT(&huart1, &RxData, 1);
 
 //HAL_UART_Receive_IT (	&huart1 ,angle)
 
-target_yaw=Yaw;
+
+
+uint8_t yaw_target_set = 0;   // 是否已初始化
 
   /* USER CODE END 2 */
 
@@ -136,15 +159,21 @@ target_yaw=Yaw;
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-//if (Yaw >60 )
+//if(target_yaw >0)
 //{
-//    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET); 
+//	HAL_GPIO_WritePin (GPIOC ,GPIO_PIN_13,GPIO_PIN_SET);
+//}
+//else{
+//	HAL_GPIO_WritePin (GPIOC,GPIO_PIN_13 ,GPIO_PIN_RESET );
+//}
+//if (Yaw >0 )
+//{//0-180
+//    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); //不亮
 //}
 //else
 //{
-//    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);  
-////HAL_Delay (5000);
+//    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);  //亮
+
 //}
 
     /* USER CODE END WHILE */

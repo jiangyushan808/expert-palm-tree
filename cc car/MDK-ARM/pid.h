@@ -14,7 +14,7 @@ long Position_PID_Right(long reality, long target,int reset);		//右轮 位置式PID
 void Reset_Position_PID_Left(void);
 void Reset_Incremental_PID_Left(void);
 
-int JY61P_Yaw_correct(float curren_yaw, float target_yaw);
+int JY61P_Yaw_correct(float current_yaw, float target_yaw,int reset);
 
 
 // 声明全局变量
