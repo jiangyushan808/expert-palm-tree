@@ -21,7 +21,7 @@ float Incremental_KP_L =1.65,Incremental_KI_L =  0.275, Incremental_KD_L = 0.1; 
 float Incremental_KP_R = 1.65,Incremental_KI_R = 0.275,Incremental_KD_R = 0.1; 
 
 /*********************角度环1*********************/
-float Yaw_KP = 27, Yaw_KI = 0 ,Yaw_KD = 0;
+float Yaw_KP = 30, Yaw_KI = 0 ,Yaw_KD = 0;
 int Yaw_PWM;
 float Yaw_fAngle = 0.0f;
 /*********************角度环*********************/
@@ -53,11 +53,12 @@ long Position_PID_Left(long reality, long target,int reset) //new: reset
         Bias = 0;
         Last_Bias = 0;
         PWM_OUT = 0;
+			Integral_bias_Left = 0;
         return 0; // 返回值不重要， reset 模式仅用于清零，不参与实际输出
     }
 	
 	
-	Bias = target - reality; /* 计算偏差 */
+	Bias_L = target - reality; /* 计算偏差 */
 	Integral_bias_Left += Bias;	 /* 偏差累积 */
 
 	if (Integral_bias_Left > 5000)
@@ -89,12 +90,13 @@ long Position_PID_Right(long reality, long target,int reset)
         Bias = 0;
         Last_Bias = 0;
         PWM_OUT = 0;
+			 Integral_bias_Right = 0;
         return 0; // 返回值不重要， reset 模式仅用于清零，不参与实际输出
     }
 	
 	
 
-	Bias = target - reality; /* 计算偏差 */
+	Bias_R = target - reality; /* 计算偏差 */
 	Integral_bias_Right += Bias;	 /* 偏差累积 */
 
 	if (Integral_bias_Right > 5000)
@@ -193,10 +195,22 @@ int JY61P_Yaw_correct(float current_yaw, float target_yaw,int reset)
 {
 	
 	static float PWM_OUT;
-	  
-    static float Integral_bias_yaw = 0;
-    static float Last_bias_yaw = 0;
-	 float Bias_yaw = target_yaw - current_yaw; /* 计算偏差 */
+	  	// new: 添加重置功能  
+	// 重置模式
+    if (reset == 1) {
+        PWM_OUT = 0;
+        Integral_bias_yaw = 0;
+        Last_bias_yaw = 0;
+       Bias_yaw = 0;
+        return 0;
+    }
+	
+  	  Bias_yaw = target_yaw - current_yaw; /* 计算偏差 */
+		
+		//把角度差值限定在-180~180，带环绕处理
+    if (Bias_yaw > 180.0f) Bias_yaw -= 360.0f;
+    if (Bias_yaw < -180.0f) Bias_yaw += 360.0f;
+			
 	Integral_bias_yaw += Bias_yaw;	 /* 偏差累积 */
 	//if(real_num == 2)
 	//	Integral_bias_yaw=0;

@@ -11,6 +11,7 @@
 #include <usart.h> 
 #include "jy61p_new.h" 
 
+//死区电压的speedout 25
 
 float now_yaw ,pitch , roll,yaw_correction;  // 单位：°
 
@@ -19,6 +20,8 @@ int16_t    Motor1Speed;
 int16_t    Motor2Speed;
 int16_t    Motor3Speed;
 int16_t    Motor4Speed;
+
+
 //编码器每采样周期的脉冲数,单位 脉冲每采样周期
 short	Encoder1_cnt ,Encoder2_cnt,Encoder3_cnt,Encoder4_cnt,Encoder_cnt,EncoderL_cnt,EncoderR_cnt; /*pwm给1000 测得最大值89*/
 
@@ -54,7 +57,11 @@ long now_position3,now_position2,now_position1,now_position4,now_position_L,now_
  float speed_output_R1;
  float speed_output_R2;
  
-
+//加上死区电压的PWM
+float  speed_L1;
+float  speed_L2;
+float  speed_R1;
+float  speed_R2;
 
 
 // 限制速度变化量的函数
@@ -163,8 +170,22 @@ void UART_SendString(UART_HandleTypeDef *huart,  char*str) {
 	
 
 }
+//有门限的死区补偿函数
+  	float ApplyDeadZone(float pwm)
+{
+    if (fabs(pwm) < DEAD_Limitation)
+        return 0.0f;  // 小于门限，归零
+
+    if (pwm > 0)
+        pwm += Dead_Voltage;
+    else
+        pwm -= Dead_Voltage;
 
     
+
+    return pwm;
+}
+
 /////******主控*****/
 //void CAR_control()
 //{
@@ -208,6 +229,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
     if (htim == &htim1) { 
 			
+			
   //500ms翻转PC13电平,测试500ms，为了测试10ms外部中断，用示波器观测也是10ms一个下降沿
 				static unsigned int timecnt;
       if (++timecnt >= 100)	
@@ -216,7 +238,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		timecnt = 0;
 			
 	  }
-		
+	
 		
 			// 计算期望位置、期望速度（状态机中给定，用于限幅）
 			Target_Velocity = Rpm_Encoder_Cnt(rpm);		/* 将转速转化为10ms的脉冲数，目标速度 */
@@ -233,10 +255,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         //new: 检查是否需要重置
         if(need_reset) {
             // 重置位置环内部状态
-            Position_PID_Left(0, 0, 1);
-            Integral_bias_Left = 0;
+            Position_PID_Left(0, 0, 1);   
 		        Position_PID_Right(0 ,0 , 1);
-		        Integral_bias_Right = 0;
+		       
 			
             // 重置速度环内部状态
              Incremental_PID_Left(0, 0, 1);
@@ -245,6 +266,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					
 					//角度环
 					JY61P_Yaw_correct(0,0,1);
+					    yaw_correction = 0;
 					
 					now_position_L =0;
 					now_position_R =0;
@@ -257,7 +279,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				float cunrent_yaw=JY61_GetYawCorrected(Yaw);
 //				float Target_yaw=JY61_GetYawCorrected(NO1_yaw);
 //				yaw_correction =JY61P_Yaw_correct(cunrent_yaw,Target_yaw);
-				yaw_correction =JY61P_Yaw_correct(cunrent_yaw,0,0);
+				yaw_correction =JY61P_Yaw_correct(Yaw,0,0);
 //				);
 				yaw_correction =Xianfu (yaw_correction ,40);
 
@@ -277,7 +299,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         Encoder1_cnt =-(short)Motor1Speed;
         Encoder2_cnt = (short)Motor2Speed;
         Encoder3_cnt = -(short)Motor3Speed;
-        Encoder4_cnt = (short)Motor4Speed;//只有电机1是负的
+        Encoder4_cnt = (short)Motor4Speed;//只有电机1,3是负的
 				
 				
 
@@ -317,46 +339,47 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         else {
 
 
-//			//new;测只有速度环用的
-//			  target_velocity_L1=Rpm_Encoder_Cnt(rpm);
-//        target_velocity_L2=Rpm_Encoder_Cnt(rpm);
-//        target_velocity_R1=Rpm_Encoder_Cnt(rpm);
-//        target_velocity_R2=Rpm_Encoder_Cnt(rpm);
+			//new;测只有速度环用的
+			  target_velocity_L1=Rpm_Encoder_Cnt(rpm);
+        target_velocity_L2=Rpm_Encoder_Cnt(rpm);
+        target_velocity_R1=Rpm_Encoder_Cnt(rpm);
+        target_velocity_R2=Rpm_Encoder_Cnt(rpm);
 			
 			// 4. 位置环计算目标速度
+				
+				 target_velocity_L1 = Position_PID_Left(now_position_L, Target_Position,0);
+				 target_velocity_L2 = Position_PID_Left(now_position_L, Target_Position,0);
+				 target_velocity_R1 = Position_PID_Right(now_position_R, Target_Position,0);
+				 target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
+
 					
-           target_velocity_L1 = Position_PID_Left(now_position_L, Target_Position,0);
-           target_velocity_L2 = Position_PID_Left(now_position_L, Target_Position,0);
-		       target_velocity_R1 = Position_PID_Right(now_position_R, Target_Position,0);
-		       target_velocity_R2 = Position_PID_Right(now_position_R, Target_Position,0);
-
-         		
-					
-           target_velocity_L1 = Xianfu(target_velocity_L1, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
-           target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(rpm));
-           target_velocity_R1= Xianfu(target_velocity_R1, Rpm_Encoder_Cnt(rpm));
-		       target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(rpm));
-			
-		       target_velocity_L1 = Xianfu(target_velocity_L1, Rpm_Encoder_Cnt(Rpm_Max));  //限幅在最大转速内
-           target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(Rpm_Max));
-           target_velocity_R1= Xianfu(target_velocity_R1, Rpm_Encoder_Cnt(Rpm_Max));
-	         target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(Rpm_Max));
+				
+				 target_velocity_L1 = Xianfu(target_velocity_L1, Rpm_Encoder_Cnt(rpm));  /*位置环输出限幅；限幅在期望速度内*/
+				 target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(rpm));
+				 target_velocity_R1= Xianfu(target_velocity_R1, Rpm_Encoder_Cnt(rpm));
+				 target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(rpm));
+		
+				 target_velocity_L1 = Xianfu(target_velocity_L1, Rpm_Encoder_Cnt(Rpm_Max));  //限幅在最大转速内
+				 target_velocity_L2 = Xianfu(target_velocity_L2, Rpm_Encoder_Cnt(Rpm_Max));
+				 target_velocity_R1= Xianfu(target_velocity_R1, Rpm_Encoder_Cnt(Rpm_Max));
+				 target_velocity_R2= Xianfu(target_velocity_R2, Rpm_Encoder_Cnt(Rpm_Max));
 
 
+	
 
-     static float prev_target_velocity_L1 = 0,prev_target_velocity_L2 = 0, prev_target_velocity_R1 = 0,prev_target_velocity_R2 = 0;
+	 static float prev_target_velocity_L1 = 0,prev_target_velocity_L2 = 0, prev_target_velocity_R1 = 0,prev_target_velocity_R2 = 0;
 
-   
-     target_velocity_L1 = limitSpeedChange(prev_target_velocity_L1, target_velocity_L1, 3);
-		 target_velocity_L2 = limitSpeedChange(prev_target_velocity_L2, target_velocity_L1, 3);
-     target_velocity_R1 = limitSpeedChange(prev_target_velocity_R1, target_velocity_R1, 3);
-		 target_velocity_R2 = limitSpeedChange(prev_target_velocity_R2, target_velocity_R1, 3);
-     prev_target_velocity_L1 = target_velocity_L1;
-		 prev_target_velocity_L2 = target_velocity_L2;
-     prev_target_velocity_R1 = target_velocity_R1;
-		 prev_target_velocity_R2 = target_velocity_R2;
-			
-            // 5. 只有速度环计算PWM
+ 
+	 target_velocity_L1 = limitSpeedChange(prev_target_velocity_L1, target_velocity_L1, 3);
+	 target_velocity_L2 = limitSpeedChange(prev_target_velocity_L2, target_velocity_L1, 3);
+	 target_velocity_R1 = limitSpeedChange(prev_target_velocity_R1, target_velocity_R1, 3);
+	 target_velocity_R2 = limitSpeedChange(prev_target_velocity_R2, target_velocity_R1, 3);
+	 prev_target_velocity_L1 = target_velocity_L1;
+	 prev_target_velocity_L2 = target_velocity_L2;
+	 prev_target_velocity_R1 = target_velocity_R1;
+	 prev_target_velocity_R2 = target_velocity_R2;
+		
+					// 5. 只有速度环计算PWM
 //												      // test  PID调用
 //        if (pid_initialized == 0) {
 //            // 触发PID清零
@@ -378,26 +401,94 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //					
 //     }
 //		
-          speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L1,0);
-          speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L2,0);
-	    		speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R1,0);
-					speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R2,0);
+				speed_output_L1 = Incremental_PID_Left(Encoder2_cnt, target_velocity_L1,0);
+				speed_output_L2 = Incremental_PID_Left(Encoder4_cnt, target_velocity_L2,0);
+				speed_output_R1 = Incremental_PID_Right(Encoder1_cnt, target_velocity_R1,0);
+				speed_output_R2 = Incremental_PID_Right(Encoder3_cnt, target_velocity_R2,0);
 
-			    
-          speed_output_L1 = Xianfu(speed_output_L1, PWM_MAX);  
-		// 	  speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
-					speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
-		//	  speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
+				
+				speed_output_L1 = Xianfu(speed_output_L1, PWM_MAX);  
+	// 	  speed_output_L1 = Xianfu(speed_output_L1, Target_Velocity);
+				speed_output_L2 = Xianfu(speed_output_L2, PWM_MAX);
+	//	  speed_output_L2 = Xianfu(speed_output_L2, Target_Velocity);
 
-			    speed_output_R1 = Xianfu(speed_output_R1, PWM_MAX);
-      //   speed_output_R1 = Xianfu(speed_output_R1,Target_Velocity );
-			    speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
-       //   speed_output_R2 = Xianfu(speed_output_R2,Target_Velocity );
+				speed_output_R1 = Xianfu(speed_output_R1, PWM_MAX);
+		//   speed_output_R1 = Xianfu(speed_output_R1,Target_Velocity );
+				speed_output_R2 = Xianfu(speed_output_R2, PWM_MAX);
+		 //   speed_output_R2 = Xianfu(speed_output_R2,Target_Velocity );
 
-             Motor1_SetSpeed(speed_output_R1+yaw_correction);
-			       Motor2_SetSpeed(speed_output_L1-yaw_correction);
-			       Motor3_SetSpeed(speed_output_R2+yaw_correction);
-			       Motor4_SetSpeed(speed_output_L2-yaw_correction);
+
+
+
+	//  加入死区补偿（速度环）
+	// =========================
+
+	speed_L1=speed_output_L1-yaw_correction;
+	speed_L2=speed_output_L2-yaw_correction;
+	speed_R1=speed_output_R1+yaw_correction;
+	speed_R2=speed_output_R2+yaw_correction;
+	if(fabs(Bias_L) > 10//如果左轮位置误差大于10，则进行死区补偿
+	{
+		if(fabs(speed_L1)<Dead_Voltage&&fabs(speed_L2)<Dead_Voltage)
+		{
+			speed_L1=0;
+			speed_L2=0;
+		}
+		else
+		{
+			speed_L1=ApplyDeadZone(speed_L1);
+			speed_L2=ApplyDeadZone(speed_L2);
+		}
+	}
+	if(Bias_R)//如果右轮位置误差大于10，则进行死区补偿
+	{
+		if(fabs(speed_R1)<Dead_Voltage&&fabs(speed_R2)<Dead_Voltage)
+		{
+			speed_R1=0;
+			speed_R2=0;
+		}
+		else
+		{
+			speed_R1=ApplyDeadZone(speed_R1);
+			speed_R2=ApplyDeadZone(speed_R2);
+		}
+	}
+	
+	
+//        speed_L1=ApplyDeadZone(speed_L1);
+//				speed_L2=ApplyDeadZone(speed_L2);
+//				speed_R1=ApplyDeadZone(speed_R1);
+//				speed_R2=ApplyDeadZone(speed_R2);
+//    if (speed_L1 > 0)  speed_L1 += Dead_Voltage;
+//    else if (speed_L1 < 0) speed_L1 -= Dead_Voltage;
+
+//    if (speed_L2 > 0) speed_L2+= Dead_Voltage;
+//    else if (speed_L2 < 0) speed_L2-= Dead_Voltage;
+
+//    if (speed_R1 > 0) speed_R1+= Dead_Voltage;
+//    else if (speed_R1 < 0) speed_R1-= Dead_Voltage;
+
+//    if (speed_R2 > 0) speed_R2+= Dead_Voltage;
+//    else if (speed_R2 < 0) speed_R2-= Dead_Voltage;
+//		
+//		// 死区补偿
+//    if (yaw_correction > 0) yaw_correction += DEADZONE_YAW;
+//    else if (yaw_correction < 0) yaw_correction -= DEADZONE_YAW;
+
+            speed_L1 = Xianfu(speed_L1, PWM_MAX);  
+            speed_L2 = Xianfu(speed_L2, PWM_MAX); 
+            speed_R1 = Xianfu(speed_R1, PWM_MAX);
+						speed_R2 = Xianfu(speed_R2, PWM_MAX); 
+
+
+             Motor1_SetSpeed(speed_R1);
+			       Motor2_SetSpeed(speed_L1);
+			       Motor3_SetSpeed(speed_R2);
+			       Motor4_SetSpeed(speed_L2);
+//Motor1_SetSpeed(+yaw_correction);
+//Motor2_SetSpeed(-yaw_correction);
+//Motor3_SetSpeed(+yaw_correction);
+//Motor4_SetSpeed(-yaw_correction);
 
 
 }
