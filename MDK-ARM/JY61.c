@@ -1,0 +1,8 @@
+// JY61.c
+#include "JY61.h"
+
+char YAWCMD[3] = {0XFF,0XAA,0X52};
+char ACCCMD[3] = {0XFF,0XAA,0X67};
+char SLEEPCMD[3] = {0XFF,0XAA,0X60};
+char UARTMODECMD[3] = {0XFF,0XAA,0X61};
+char IICMODECMD[3] = {0XFF,0XAA,0X62};
