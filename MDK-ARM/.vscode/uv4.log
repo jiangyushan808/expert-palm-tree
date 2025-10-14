@@ -1,0 +1,8 @@
+<<<<<<< HEAD
+*** Using Compiler 'V6.7', folder: 'D:\Keil_v5\ARM\ARMCLANG\Bin'
+=======
+*** Using Compiler 'V6.10.1', folder: 'D:\ARM\ARMCLANG\Bin'
+>>>>>>> 8a274eeea5e1c58bf1cf451062b760e3f76587d0
+Build target 'SHUNSHUN_CAR'
+"SHUNSHUN_CAR\SHUNSHUN_CAR.axf" - 0 Error(s), 0 Warning(s).
+Build Time Elapsed:  00:00:01
